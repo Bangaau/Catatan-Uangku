@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tesseract JS untuk AI Scan Struk (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         body {
@@ -18,7 +21,6 @@
             background-color: #f8fafc;
         }
 
-        /* Hilangkan highlight biru di HP */
         * { -webkit-tap-highlight-color: transparent; }
 
         .page-content {
@@ -43,11 +45,9 @@
 </head>
 <body class="text-slate-800 font-sans h-screen w-screen flex flex-col relative">
 
-    <!-- ==============================================
-         MODAL SELAMAT DATANG (INPUT NAMA)
-         ============================================== -->
+    <!-- MODAL SELAMAT DATANG -->
     <div id="welcome-modal" class="fixed inset-0 bg-slate-900/90 z-[60] flex flex-col justify-center items-center p-6 backdrop-blur-md transition-opacity">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl transform scale-100 transition-transform" id="welcome-content">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl" id="welcome-content">
             <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i class="fa-solid fa-hand-wave text-4xl"></i>
             </div>
@@ -56,7 +56,6 @@
             
             <form id="form-name" class="space-y-4">
                 <input type="text" id="input-username" required autocomplete="off" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" placeholder="Masukkan nama...">
-                
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 font-bold shadow-md transition-colors">
                     Mulai Aplikasi <i class="fa-solid fa-arrow-right ml-2"></i>
                 </button>
@@ -64,9 +63,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         HALAMAN 1: BERANDA (DASHBOARD)
-         ============================================== -->
+    <!-- HALAMAN 1: BERANDA -->
     <div id="page-home" class="page active page-content p-4 filter blur-sm transition-all duration-300">
         <header class="flex items-center justify-between mb-6 pt-2">
             <div>
@@ -78,10 +75,8 @@
             </div>
         </header>
 
-        <!-- Kartu Saldo Utama -->
         <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/30 mb-6 relative overflow-hidden">
             <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-            
             <p class="text-blue-100 text-sm mb-1 relative z-10">Total Saldo Saat Ini</p>
             <h2 id="home-total-balance" class="text-4xl font-bold mb-6 relative z-10">Rp 0</h2>
             
@@ -97,7 +92,6 @@
             </div>
         </div>
 
-        <!-- Grafik Arus Kas -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-slate-700 text-sm"><i class="fa-solid fa-chart-column mr-2 text-blue-500"></i>Arus Kas Bulan Ini</h3>
@@ -108,34 +102,25 @@
             </div>
         </div>
 
-        <!-- Transaksi Terbaru -->
         <div>
             <div class="flex justify-between items-end mb-3">
                 <h3 class="font-bold text-slate-700">Transaksi Terbaru</h3>
                 <button onclick="switchTab('page-history', 'tab-history')" class="text-blue-600 text-sm font-medium">Lihat Semua</button>
             </div>
-            <div id="home-recent-list" class="space-y-3">
-                <div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">Memuat data...</div>
-            </div>
+            <div id="home-recent-list" class="space-y-3"></div>
         </div>
     </div>
 
-
-    <!-- ==============================================
-         HALAMAN 2: REKAP BULANAN
-         ============================================== -->
+    <!-- HALAMAN 2: REKAP BULANAN -->
     <div id="page-recap" class="page page-content p-4">
         <header class="mb-6 pt-2 sticky top-0 bg-[#f8fafc] z-10 pb-2">
             <h1 class="text-2xl font-bold text-slate-900 mb-4">Rekap Bulanan</h1>
-            
-            <!-- Pemilih Bulan -->
             <div class="relative">
                 <input type="month" id="recap-month" onchange="renderRekap()" class="w-full pl-4 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold shadow-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
                 <i class="fa-solid fa-calendar-days absolute right-4 top-4 text-slate-400 pointer-events-none"></i>
             </div>
         </header>
 
-        <!-- Kartu Ringkasan Net Bulanan -->
         <div class="grid grid-cols-2 gap-3 mb-6">
             <div class="col-span-2 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-center">
                 <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wide">Sisa Uang Bulan Ini</p>
@@ -151,27 +136,19 @@
             </div>
         </div>
 
-        <!-- Rincian Pengeluaran per Kategori -->
         <h3 class="font-bold text-slate-700 mb-3 text-sm">Rincian Pengeluaran per Kategori</h3>
-        <div id="recap-category-list" class="space-y-3">
-            <!-- Data diisi via JS -->
-        </div>
+        <div id="recap-category-list" class="space-y-3"></div>
     </div>
 
-
-    <!-- ==============================================
-         HALAMAN 3: RIWAYAT TRANSAKSI
-         ============================================== -->
+    <!-- HALAMAN 3: RIWAYAT TRANSAKSI -->
     <div id="page-history" class="page page-content p-4">
         <header class="mb-4 pt-2 sticky top-0 bg-[#f8fafc] z-10 pb-2">
             <div class="flex justify-between items-center mb-3">
                 <h1 class="text-2xl font-bold text-slate-900">Histori Transaksi</h1>
-                <!-- TOMBOL RESET -->
                 <button onclick="resetSemuaData()" class="bg-rose-100 hover:bg-rose-200 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors">
                     <i class="fa-solid fa-trash-can"></i> Reset Data
                 </button>
             </div>
-            
             <div class="flex gap-2 overflow-x-auto pb-1">
                 <button onclick="filterHistory('all')" id="filter-all" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-white whitespace-nowrap">Semua</button>
                 <button onclick="filterHistory('income')" id="filter-income" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-slate-200 text-slate-600 whitespace-nowrap">Pemasukan</button>
@@ -179,17 +156,20 @@
             </div>
         </header>
 
-        <div id="full-history-list" class="space-y-3">
-            <!-- Data diisi JS -->
-        </div>
+        <div id="full-history-list" class="space-y-3"></div>
     </div>
 
-
-    <!-- ==============================================
-         MODAL (POPUP) TAMBAH TRANSAKSI
-         ============================================== -->
+    <!-- MODAL (POPUP) TAMBAH TRANSAKSI -->
     <div id="transaction-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex-col justify-end backdrop-blur-sm transition-opacity">
-        <div class="bg-white w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full" id="modal-content">
+        
+        <!-- LOADING OVERLAY UNTUK SCAN STRUK -->
+        <div id="ocr-loading" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-[60] flex-col justify-center items-center rounded-t-3xl">
+            <i class="fa-solid fa-expand fa-spin text-5xl text-blue-600 mb-4"></i>
+            <h3 class="text-lg font-bold text-slate-800">Membaca Struk...</h3>
+            <p class="text-sm text-slate-500 mt-2 text-center px-8">AI sedang memproses gambar. Scan pertama kali memakan waktu lebih lama untuk memuat modul AI.</p>
+        </div>
+
+        <div class="bg-white w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative" id="modal-content">
             
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-slate-900">Catat Transaksi</h2>
@@ -204,10 +184,20 @@
                     <button type="button" id="modal-btn-income" onclick="setModalType('income')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 transition-all">Pemasukan</button>
                 </div>
 
-                <!-- Input Nominal dengan Pemisah Ribuan -->
-                <div class="relative">
-                    <span class="absolute left-4 top-3.5 text-slate-400 font-bold">Rp</span>
-                    <!-- Type text & inputmode numeric untuk memunculkan keyboard angka di HP tapi bisa dikasih titik -->
+                <div class="relative pt-2">
+                    <!-- HEADER NOMINAL & TOMBOL SCAN -->
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-500 ml-1">Nominal (Rp)</label>
+                        
+                        <!-- TOMBOL KAMERA SCAN -->
+                        <button type="button" onclick="document.getElementById('input-scan').click()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm">
+                            <i class="fa-solid fa-camera"></i> Scan Struk
+                        </button>
+                        <!-- INPUT FILE HIDDEN UNTUK KAMERA -->
+                        <input type="file" id="input-scan" accept="image/*" capture="environment" class="hidden" onchange="processReceipt(this)">
+                    </div>
+
+                    <span class="absolute left-4 top-[2.4rem] text-slate-400 font-bold">Rp</span>
                     <input type="text" inputmode="numeric" id="input-amount" required class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold text-2xl text-slate-800 outline-none transition-colors" placeholder="0">
                 </div>
 
@@ -234,41 +224,26 @@
         </div>
     </div>
 
-
-    <!-- ==============================================
-         NAVIGASI BAWAH (BOTTOM TAB BAR 4 MENU)
-         ============================================== -->
+    <!-- NAVIGASI BAWAH -->
     <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-between items-center h-[70px] px-4 pb-safe z-40">
-        <!-- Menu Kiri -->
         <button onclick="switchTab('page-home', 'tab-home')" id="tab-home" class="tab-btn active flex flex-col items-center justify-center w-14 text-slate-400 transition-colors">
-            <i class="fa-solid fa-house text-xl mb-1"></i>
-            <span class="text-[10px] font-medium">Beranda</span>
+            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-medium">Beranda</span>
         </button>
         <button onclick="switchTab('page-recap', 'tab-recap')" id="tab-recap" class="tab-btn flex flex-col items-center justify-center w-14 text-slate-400 transition-colors">
-            <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
-            <span class="text-[10px] font-medium">Rekap</span>
+            <i class="fa-solid fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-medium">Rekap</span>
         </button>
-        
-        <!-- Tombol Tambah Mengambang di Tengah -->
         <button onclick="openModal()" class="w-14 h-14 bg-blue-600 rounded-full flex justify-center items-center text-white shadow-lg shadow-blue-500/40 -translate-y-5 border-4 border-white shrink-0 relative z-50">
             <i class="fa-solid fa-plus text-2xl"></i>
         </button>
-
-        <!-- Menu Kanan -->
         <button onclick="switchTab('page-history', 'tab-history')" id="tab-history" class="tab-btn flex flex-col items-center justify-center w-14 text-slate-400 transition-colors">
-            <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i>
-            <span class="text-[10px] font-medium">Histori</span>
+            <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i><span class="text-[10px] font-medium">Histori</span>
         </button>
         <button onclick="editName()" id="tab-profile" class="tab-btn flex flex-col items-center justify-center w-14 text-slate-400 transition-colors">
-            <i class="fa-solid fa-user-pen text-xl mb-1"></i>
-            <span class="text-[10px] font-medium">Profil</span>
+            <i class="fa-solid fa-user-pen text-xl mb-1"></i><span class="text-[10px] font-medium">Profil</span>
         </button>
     </nav>
 
-
-    <!-- ==============================================
-         LOGIKA APLIKASI (JAVASCRIPT)
-         ============================================== -->
+    <!-- LOGIKA APLIKASI -->
     <script>
         let transactions = [];
         let modalType = 'expense';
@@ -294,13 +269,84 @@
             ]
         };
 
-        // --- FORMAT TITIK OTOMATIS SAAT MENGETIK ---
+        // --- FITUR BARU: AI SCAN STRUK (OCR) ---
+        async function processReceipt(input) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+
+            // Tampilkan Loading Overlay
+            const loadingOverlay = document.getElementById('ocr-loading');
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('flex');
+
+            try {
+                // Menggunakan Tesseract.js API (AI berjalan di browser pengguna)
+                const result = await Tesseract.recognize(file, 'ind');
+                const text = result.data.text;
+                console.log("Hasil Teks Struk:\n", text);
+
+                // Algoritma Membaca Total Harga dari Teks Struk Berantakan
+                let guessedTotal = 0;
+                const lines = text.toUpperCase().split('\n');
+
+                // Langkah 1: Coba cari baris yang mengandung kata TOTAL atau JUMLAH
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('TOTAL') || lines[i].includes('JUMLAH') || lines[i].includes('TTL')) {
+                        let nums = lines[i].match(/[\d.,]+/g); // Ambil angka saja
+                        if (nums) {
+                            for(let numStr of nums) {
+                                // Bersihkan format ribuan Indonesia
+                                let cleanNum = parseFloat(numStr.replace(/\./g, '').replace(/,/g, ''));
+                                // Logika asuransi: Total jarang lebih dari 1 Miliar untuk belanja harian
+                                if (cleanNum > guessedTotal && cleanNum < 1000000000) {
+                                    guessedTotal = cleanNum;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Langkah 2: Jika kata TOTAL tidak terdeteksi, cari angka terbesar di seluruh struk (Format titik)
+                if (guessedTotal === 0) {
+                    let numMatches = text.match(/\b\d{1,3}(?:\.\d{3})+\b/g); // Cari format seperti 15.000
+                    if (numMatches) {
+                        for(let numStr of numMatches) {
+                            let cleanNum = parseFloat(numStr.replace(/\./g, ''));
+                            if (cleanNum > guessedTotal) guessedTotal = cleanNum;
+                        }
+                    }
+                }
+
+                // Langkah 3: Update Form Input
+                if (guessedTotal > 0) {
+                    const formatID = new Intl.NumberFormat('id-ID').format(guessedTotal);
+                    document.getElementById('input-amount').value = formatID;
+                    document.getElementById('input-desc').value = 'Belanja (Scan Struk)';
+                    
+                    // Set kategori jadi pengeluaran dan Belanja secara otomatis
+                    setModalType('expense');
+                    document.getElementById('input-category').value = 'Belanja';
+
+                    alert("🎉 AI berhasil menemukan nominal: Rp " + formatID + "\n\nPastikan nominal sudah benar sebelum disimpan!");
+                } else {
+                    alert("Maaf, AI gagal membaca angka total dari struk ini. Foto mungkin kurang jelas. Silakan input manual.");
+                }
+
+            } catch (error) {
+                console.error("OCR Error:", error);
+                alert("Terjadi kesalahan sistem saat memproses gambar.");
+            } finally {
+                // Sembunyikan Loading
+                loadingOverlay.classList.add('hidden');
+                loadingOverlay.classList.remove('flex');
+                input.value = ''; // Reset file input agar bisa scan gambar yg sama lagi
+            }
+        }
+
+        // --- FORMAT TITIK OTOMATIS ---
         document.getElementById('input-amount').addEventListener('input', function(e) {
-            // Hapus semua karakter yang bukan angka
             let value = this.value.replace(/\D/g, '');
-            
             if (value !== '') {
-                // Tambahkan format pemisah ribuan ala Indonesia (menggunakan titik)
                 this.value = new Intl.NumberFormat('id-ID').format(value);
             } else {
                 this.value = '';
@@ -343,9 +389,7 @@
         });
 
         window.editName = function() {
-            // Aktifkan tab Home terlebih dahulu agar blur berjalan benar
             switchTab('page-home', 'tab-home');
-            
             document.getElementById('input-username').value = userName;
             const welcomeModal = document.getElementById('welcome-modal');
             const content = document.getElementById('welcome-content');
@@ -357,7 +401,7 @@
             mainAppBlur.classList.add('blur-sm');
         };
 
-        // --- PENYIMPANAN DATA ---
+        // --- PENYIMPANAN DATA LOKAL ---
         function loadLocalData() {
             const savedData = localStorage.getItem('uangku_data');
             if (savedData) {
@@ -373,18 +417,15 @@
             updateSemuaUI();
         }
 
-        // Fitur Baru: HAPUS SEMUA HISTORI (RESET)
         window.resetSemuaData = function() {
-            const konfirmasi = confirm("PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data histori transaksi?\n\nData yang dihapus tidak dapat dikembalikan.");
-            if(konfirmasi) {
+            if(confirm("PERINGATAN: Yakin ingin menghapus SEMUA data transaksi?")) {
                 transactions = [];
                 saveLocalData();
-                alert("Berhasil! Semua data transaksi telah direset ke nol.");
+                alert("Berhasil direset!");
             }
         }
 
         const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-
         function getCategoryData(type, id) {
             const catList = categories[type];
             return catList.find(c => c.id === id) || { icon: 'fa-circle-question', color: 'text-slate-500', bg: 'bg-slate-100' };
@@ -392,17 +433,10 @@
 
         // --- NAVIGASI & MODAL ---
         function switchTab(pageId, tabId) {
-            // Sembunyikan semua halaman & matikan warna aktif tab
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            // Aktifkan yang dipilih
             document.getElementById(pageId).classList.add('active');
-            if(tabId !== 'tab-profile') { // Karena tab profil memanggil modal, tidak menempel pada halaman spesifik
-                document.getElementById(tabId).classList.add('active');
-            }
-            
-            // Jika masuk ke tab rekap, update data rekapnya
+            if(tabId !== 'tab-profile') document.getElementById(tabId).classList.add('active');
             if (pageId === 'page-recap') renderRekap();
         }
 
@@ -411,13 +445,10 @@
             const content = document.getElementById('modal-content');
             document.getElementById('input-date').valueAsDate = new Date();
             setModalType('expense');
-            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             void modal.offsetWidth; 
             content.classList.remove('translate-y-full');
-            // Fokus otomatis ke input nominal
-            setTimeout(() => { document.getElementById('input-amount').focus(); }, 100);
         }
 
         function closeModal() {
@@ -446,15 +477,12 @@
             }
 
             selCat.innerHTML = '<option value="" disabled selected>Pilih...</option>';
-            categories[type].forEach(cat => {
-                selCat.innerHTML += `<option value="${cat.id}">${cat.id}</option>`;
-            });
+            categories[type].forEach(cat => { selCat.innerHTML += `<option value="${cat.id}">${cat.id}</option>`; });
         }
 
         // --- RENDER SEMUA UI ---
         function updateSemuaUI() {
             transactions.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
-
             let tInc = 0, tExp = 0;
             transactions.forEach(t => {
                 if (t.type === 'income') tInc += t.amount;
@@ -465,75 +493,53 @@
             document.getElementById('home-total-income').innerText = formatIDR(tInc);
             document.getElementById('home-total-expense').innerText = formatIDR(tExp);
 
-            renderList(transactions.slice(0, 5), 'home-recent-list'); // 5 terbaru
-            
-            let filteredTrans = transactions;
-            if (currentFilter !== 'all') {
-                filteredTrans = transactions.filter(t => t.type === currentFilter);
-            }
-            renderList(filteredTrans, 'full-history-list', true); // Full di Riwayat
+            renderList(transactions.slice(0, 5), 'home-recent-list'); 
+            let filteredTrans = currentFilter !== 'all' ? transactions.filter(t => t.type === currentFilter) : transactions;
+            renderList(filteredTrans, 'full-history-list', true); 
 
             renderChart();
-            renderRekap(); // Update layar rekap
+            renderRekap(); 
         }
 
-        // --- RENDER LIST ---
         function renderList(dataArray, containerId, allowDelete = false) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-
             if (dataArray.length === 0) {
                 container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm">
-                    <i class="fa-solid fa-receipt text-3xl mb-2 opacity-50 block"></i>
-                    Belum ada catatan
-                </div>`;
+                    <i class="fa-solid fa-receipt text-3xl mb-2 opacity-50 block"></i>Belum ada catatan</div>`;
                 return;
             }
-
             dataArray.forEach(t => {
                 const isInc = t.type === 'income';
                 const catInfo = getCategoryData(t.type, t.category);
                 const dateStr = new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-                
-                let deleteBtn = '';
-                if (allowDelete) {
-                    deleteBtn = `<button onclick="hapusTransaksi(${t.id})" class="ml-3 text-slate-300 hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can"></i></button>`;
-                }
+                let deleteBtn = allowDelete ? `<button onclick="hapusTransaksi(${t.id})" class="ml-3 text-slate-300 hover:text-red-500 p-2 transition-colors"><i class="fa-solid fa-trash-can"></i></button>` : '';
 
                 container.innerHTML += `
                     <div class="bg-white p-3 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${catInfo.bg} ${catInfo.color}">
-                                <i class="fa-solid ${catInfo.icon}"></i>
-                            </div>
+                            <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${catInfo.bg} ${catInfo.color}"><i class="fa-solid ${catInfo.icon}"></i></div>
                             <div class="overflow-hidden">
                                 <p class="font-bold text-slate-800 text-sm leading-tight truncate pr-2">${t.description}</p>
                                 <p class="text-[11px] text-slate-400 mt-0.5">${t.category} • ${dateStr}</p>
                             </div>
                         </div>
                         <div class="flex items-center shrink-0">
-                            <p class="font-bold text-sm ${isInc ? 'text-emerald-500' : 'text-slate-800'}">
-                                ${isInc ? '+' : '-'}${formatIDR(t.amount)}
-                            </p>
+                            <p class="font-bold text-sm ${isInc ? 'text-emerald-500' : 'text-slate-800'}">${isInc ? '+' : '-'}${formatIDR(t.amount)}</p>
                             ${deleteBtn}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        // --- FITUR BARU: LOGIKA REKAP BULANAN ---
         function renderRekap() {
-            const monthInputStr = document.getElementById('recap-month').value; // Format: "2026-05"
+            const monthInputStr = document.getElementById('recap-month').value; 
             if(!monthInputStr) return;
-            
             const [year, month] = monthInputStr.split('-');
             
-            let tIncMonth = 0;
-            let tExpMonth = 0;
-            const categoryTotals = {}; // Menyimpan total per kategori pengeluaran
+            let tIncMonth = 0, tExpMonth = 0;
+            const categoryTotals = {}; 
 
-            // Filter data sesuai bulan dan tahun
             transactions.forEach(t => {
                 const d = new Date(t.date);
                 if(d.getFullYear() == year && String(d.getMonth() + 1).padStart(2, '0') == month) {
@@ -545,68 +551,44 @@
                 }
             });
 
-            // Update Kartu Ringkasan
             const netBalance = tIncMonth - tExpMonth;
             document.getElementById('recap-income').innerText = formatIDR(tIncMonth);
             document.getElementById('recap-expense').innerText = formatIDR(tExpMonth);
-            
             const balanceEl = document.getElementById('recap-balance');
             balanceEl.innerText = formatIDR(netBalance);
             balanceEl.className = `text-3xl font-bold ${netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
 
-            // Render Rincian Kategori Pengeluaran
             const catListContainer = document.getElementById('recap-category-list');
             catListContainer.innerHTML = '';
-            
             if(tExpMonth === 0) {
-                catListContainer.innerHTML = `
-                    <div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
-                        Mantap! Tidak ada pengeluaran bulan ini.
-                    </div>`;
+                catListContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">Mantap! Tidak ada pengeluaran bulan ini.</div>`;
             } else {
-                // Urutkan kategori dari pengeluaran terbesar
-                const sortedCats = Object.keys(categoryTotals).sort((a,b) => categoryTotals[b] - categoryTotals[a]);
-                
-                sortedCats.forEach(cat => {
+                Object.keys(categoryTotals).sort((a,b) => categoryTotals[b] - categoryTotals[a]).forEach(cat => {
                     const amount = categoryTotals[cat];
                     const percentage = Math.round((amount / tExpMonth) * 100);
                     const catInfo = getCategoryData('expense', cat);
-                    
                     catListContainer.innerHTML += `
                         <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-                            <!-- Background Bar Persentase -->
                             <div class="absolute left-0 top-0 bottom-0 ${catInfo.bg} opacity-30" style="width: ${percentage}%"></div>
-                            
                             <div class="relative z-10 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-slate-100 ${catInfo.color}">
-                                        <i class="fa-solid ${catInfo.icon}"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-slate-800 text-sm">${cat}</p>
-                                        <p class="text-[11px] text-slate-400">${percentage}% dari pengeluaran</p>
-                                    </div>
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-slate-100 ${catInfo.color}"><i class="fa-solid ${catInfo.icon}"></i></div>
+                                    <div><p class="font-bold text-slate-800 text-sm">${cat}</p><p class="text-[11px] text-slate-400">${percentage}% dari pengeluaran</p></div>
                                 </div>
                                 <p class="font-bold text-slate-800 text-sm">${formatIDR(amount)}</p>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             }
         }
 
-        // --- RENDER GRAFIK BERANDA ---
         function renderChart() {
             const ctx = document.getElementById('cashflowChart');
             const emptyMsg = document.getElementById('empty-chart-msg');
-            
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
             
-            const currentMonthData = transactions.filter(t => {
-                const dateObj = new Date(t.date);
-                return dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear;
-            });
+            const currentMonthData = transactions.filter(t => new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear);
 
             if (currentMonthData.length === 0) {
                 if (chartInstance) chartInstance.destroy();
@@ -615,22 +597,16 @@
             }
             emptyMsg.classList.add('hidden');
 
-            let totalPemasukanBulanIni = 0;
-            let totalPengeluaranBulanIni = 0;
-
-            currentMonthData.forEach(t => {
-                if(t.type === 'income') totalPemasukanBulanIni += t.amount;
-                if(t.type === 'expense') totalPengeluaranBulanIni += t.amount;
-            });
+            let totalPemasukan = 0, totalPengeluaran = 0;
+            currentMonthData.forEach(t => { t.type === 'income' ? totalPemasukan += t.amount : totalPengeluaran += t.amount; });
 
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Pemasukan', 'Pengeluaran'],
                     datasets: [{
-                        data: [totalPemasukanBulanIni, totalPengeluaranBulanIni],
+                        data: [totalPemasukan, totalPengeluaran],
                         backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(244, 63, 94, 0.8)'],
                         borderColor: ['rgb(16, 185, 129)', 'rgb(244, 63, 94)'],
                         borderWidth: 1, borderRadius: 6, barThickness: 40
@@ -638,96 +614,55 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return formatIDR(context.parsed.y); }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return formatIDR(c.parsed.y); } } } },
                     scales: {
-                        y: {
-                            beginAtZero: true, grid: { borderDash: [4, 4], color: '#e2e8f0' },
-                            ticks: {
-                                callback: function(value) {
-                                    if (value >= 1000000) return (value / 1000000) + 'Jt';
-                                    if (value >= 1000) return (value / 1000) + 'Rb';
-                                    return value;
-                                },
-                                font: { size: 10 }
-                            }
-                        },
+                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#e2e8f0' }, ticks: { callback: function(v) { if (v >= 1000000) return (v / 1000000) + 'Jt'; if (v >= 1000) return (v / 1000) + 'Rb'; return v; }, font: { size: 10 } } },
                         x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
                     }
                 }
             });
         }
 
-        // --- SUBMIT TRANSAKSI & FILTER ---
+        // --- SUBMIT TRANSAKSI ---
         document.getElementById('form-add').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Ambil value input, hapus semua titik, dan konversi ke angka murni (Float)
             const rawAmountString = document.getElementById('input-amount').value.replace(/\D/g, '');
             const finalAmount = parseFloat(rawAmountString);
 
-            if (!finalAmount || isNaN(finalAmount)) {
-                alert("Nominal tidak valid!");
-                return;
-            }
+            if (!finalAmount || isNaN(finalAmount)) { alert("Nominal tidak valid!"); return; }
 
-            const newT = {
+            transactions.push({
                 id: Date.now(),
                 type: modalType,
-                amount: finalAmount, // Simpan angka murni, bukan teks yang ada titiknya
+                amount: finalAmount, 
                 category: document.getElementById('input-category').value,
                 date: document.getElementById('input-date').value,
                 description: document.getElementById('input-desc').value
-            };
+            });
 
-            transactions.push(newT);
             saveLocalData();
             closeModal();
-            
-            // Bawa layar kembali ke Beranda jika input dari riwayat
-            if(document.getElementById('page-history').classList.contains('active')){
-                switchTab('page-home', 'tab-home');
-            }
+            if(document.getElementById('page-history').classList.contains('active')) switchTab('page-home', 'tab-home');
         });
 
         window.hapusTransaksi = function(id) {
-            if(confirm("Hapus transaksi ini?")) {
-                transactions = transactions.filter(t => t.id !== id);
-                saveLocalData();
-            }
+            if(confirm("Hapus transaksi ini?")) { transactions = transactions.filter(t => t.id !== id); saveLocalData(); }
         };
 
         window.filterHistory = function(type) {
             currentFilter = type;
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-800', 'text-white');
-                btn.classList.add('bg-slate-200', 'text-slate-600');
+                btn.classList.remove('bg-slate-800', 'text-white'); btn.classList.add('bg-slate-200', 'text-slate-600');
             });
             const activeBtn = document.getElementById(`filter-${type}`);
-            activeBtn.classList.remove('bg-slate-200', 'text-slate-600');
-            activeBtn.classList.add('bg-slate-800', 'text-white');
+            activeBtn.classList.remove('bg-slate-200', 'text-slate-600'); activeBtn.classList.add('bg-slate-800', 'text-white');
             updateSemuaUI();
         };
 
-        // --- INISIALISASI SAAT APLIKASI DIBUKA ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Setup input bulan rekap ke bulan ini secara default
             const now = new Date();
-            const yearStr = now.getFullYear();
-            const monthStr = String(now.getMonth() + 1).padStart(2, '0');
-            document.getElementById('recap-month').value = `${yearStr}-${monthStr}`;
-
-            // Tutup modal jika area abu-abu diklik
-            document.getElementById('transaction-modal').addEventListener('click', function(e) {
-                if (e.target === this) closeModal();
-            });
-            
+            document.getElementById('recap-month').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('transaction-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
             checkUserName();
             loadLocalData();
         });
