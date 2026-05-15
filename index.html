@@ -5,41 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UangKu - Pemantau Keuangan</title>
     
-    <!-- Tailwind CSS untuk Desain -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js untuk Grafik -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Font Awesome untuk Ikon (karena aplikasi ini butuh banyak ikon) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* CSS Khusus agar terasa seperti aplikasi Native (Asli) */
         body {
-            -webkit-touch-callout: none; /* Cegah pop-up saat tahan lama */
-            -webkit-user-select: none; /* Cegah blok teks */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none;
-            overflow-y: hidden; /* Mencegah scroll pada body utama, kita atur per halaman */
+            overflow-y: hidden;
             background-color: #f8fafc;
         }
 
-        /* Menyembunyikan panah input angka */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        /* Mencegah highlight biru saat elemen disentuh (tap) di HP */
         * { -webkit-tap-highlight-color: transparent; }
 
-        /* Mengatur agar halaman bisa di-scroll tapi navigasi bawah tetap */
         .page-content {
-            height: calc(100vh - 65px); /* Kurangi tinggi tab bar bawah */
+            height: calc(100vh - 65px);
             overflow-y: auto;
-            padding-bottom: 20px; /* Jarak ekstra di bawah */
+            padding-bottom: 20px;
         }
 
-        /* Animasi Transisi Halaman (Sederhana) */
         .page {
             display: none;
             animation: fadeIn 0.3s ease-in-out;
@@ -51,39 +41,61 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Tab Bar Aktif */
-        .tab-btn.active { color: #2563eb; } /* Warna Biru Tailwind */
+        .tab-btn.active { color: #2563eb; }
     </style>
 </head>
 <body class="text-slate-800 font-sans h-screen w-screen flex flex-col relative">
 
     <!-- ==============================================
+         MODAL SELAMAT DATANG (INPUT NAMA)
+         ============================================== -->
+    <div id="welcome-modal" class="fixed inset-0 bg-slate-900/90 z-[60] flex flex-col justify-center items-center p-6 backdrop-blur-md transition-opacity">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl transform scale-100 transition-transform" id="welcome-content">
+            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-hand-wave text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Selamat Datang!</h2>
+            <p class="text-slate-500 text-sm mb-8">Mari mulai atur keuanganmu dengan lebih baik. Siapa nama panggilanmu?</p>
+            
+            <form id="form-name" class="space-y-4">
+                <input type="text" id="input-username" required autocomplete="off" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" placeholder="Masukkan nama...">
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 font-bold shadow-md transition-colors">
+                    Mulai Aplikasi <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==============================================
          HALAMAN 1: BERANDA (DASHBOARD)
          ============================================== -->
-    <div id="page-home" class="page active page-content p-4">
+    <div id="page-home" class="page active page-content p-4 filter blur-sm transition-all duration-300" id="main-app-blur">
         <!-- Header -->
         <header class="flex items-center justify-between mb-6 pt-2">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900">Halo, Pengguna!</h1>
+                <h1 class="text-2xl font-bold text-slate-900 truncate max-w-[200px]" id="display-username">Halo!</h1>
                 <p class="text-sm text-slate-500">Ringkasan Keuangan Anda</p>
             </div>
-            <div class="bg-blue-100 p-2 rounded-full text-blue-600">
-                <i class="fa-solid fa-wallet text-xl"></i>
+            <div class="bg-blue-100 p-2.5 rounded-full text-blue-600" onclick="editName()">
+                <i class="fa-solid fa-user-pen text-lg"></i>
             </div>
         </header>
 
-        <!-- Kartu Saldo Utama (Mirip ATM) -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/30 mb-6">
-            <p class="text-blue-100 text-sm mb-1">Total Saldo Saat Ini</p>
-            <h2 id="home-total-balance" class="text-4xl font-bold mb-6">Rp 0</h2>
+        <!-- Kartu Saldo Utama -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/30 mb-6 relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
             
-            <div class="flex justify-between border-t border-blue-400/30 pt-4">
+            <p class="text-blue-100 text-sm mb-1 relative z-10">Total Saldo Saat Ini</p>
+            <h2 id="home-total-balance" class="text-4xl font-bold mb-6 relative z-10">Rp 0</h2>
+            
+            <div class="flex justify-between border-t border-blue-400/30 pt-4 relative z-10">
                 <div>
-                    <p class="text-blue-100 text-xs flex items-center gap-1"><i class="fa-solid fa-arrow-down text-green-300"></i> Pemasukan</p>
+                    <p class="text-blue-100 text-xs flex items-center gap-1"><i class="fa-solid fa-arrow-down text-emerald-400"></i> Pemasukan</p>
                     <p id="home-total-income" class="font-semibold text-lg">Rp 0</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-blue-100 text-xs flex items-center gap-1 justify-end"><i class="fa-solid fa-arrow-up text-red-300"></i> Pengeluaran</p>
+                    <p class="text-blue-100 text-xs flex items-center gap-1 justify-end"><i class="fa-solid fa-arrow-up text-rose-400"></i> Pengeluaran</p>
                     <p id="home-total-expense" class="font-semibold text-lg">Rp 0</p>
                 </div>
             </div>
@@ -94,12 +106,14 @@
             <i class="fa-solid fa-plus-circle text-lg"></i> Tambah Transaksi
         </button>
 
-        <!-- Grafik Pengeluaran -->
+        <!-- Grafik Arus Kas -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
-            <h3 class="font-bold text-slate-700 mb-4 text-sm"><i class="fa-solid fa-chart-pie mr-2 text-blue-500"></i>Grafik Pengeluaran Bulan Ini</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-700 text-sm"><i class="fa-solid fa-chart-column mr-2 text-blue-500"></i>Arus Kas Bulan Ini</h3>
+            </div>
             <div class="relative h-48 w-full flex justify-center items-center">
-                <canvas id="expenseChart"></canvas>
-                <div id="empty-chart-msg" class="absolute text-slate-400 text-sm hidden">Belum ada data pengeluaran</div>
+                <canvas id="cashflowChart"></canvas>
+                <div id="empty-chart-msg" class="absolute text-slate-400 text-sm hidden">Belum ada data transaksi bulan ini</div>
             </div>
         </div>
 
@@ -110,7 +124,6 @@
                 <button onclick="switchTab('page-history', 'tab-history')" class="text-blue-600 text-sm font-medium">Lihat Semua</button>
             </div>
             <div id="home-recent-list" class="space-y-3">
-                <!-- Data diisi JS -->
                 <div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">Memuat data...</div>
             </div>
         </div>
@@ -124,7 +137,6 @@
         <header class="mb-6 pt-2 sticky top-0 bg-[#f8fafc] z-10 pb-2">
             <h1 class="text-2xl font-bold text-slate-900">Riwayat Transaksi</h1>
             
-            <!-- Filter Tipe (All, Income, Expense) -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-1">
                 <button onclick="filterHistory('all')" id="filter-all" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-slate-800 text-white whitespace-nowrap">Semua</button>
                 <button onclick="filterHistory('income')" id="filter-income" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-slate-200 text-slate-600 whitespace-nowrap">Pemasukan</button>
@@ -152,39 +164,33 @@
             </div>
 
             <form id="form-add" class="space-y-4">
-                <!-- Tipe -->
                 <div class="flex p-1 bg-slate-100 rounded-xl">
-                    <button type="button" id="modal-btn-expense" onclick="setModalType('expense')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white text-red-500 shadow-sm transition-all">Pengeluaran</button>
+                    <button type="button" id="modal-btn-expense" onclick="setModalType('expense')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white text-rose-500 shadow-sm transition-all">Pengeluaran</button>
                     <button type="button" id="modal-btn-income" onclick="setModalType('income')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 transition-all">Pemasukan</button>
                 </div>
 
-                <!-- Input Nominal (Besar) -->
                 <div class="relative">
                     <span class="absolute left-4 top-3 text-slate-400 font-bold">Rp</span>
                     <input type="number" id="input-amount" min="0" required class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold text-xl" placeholder="0">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <!-- Kategori -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Kategori</label>
                         <select id="input-category" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 appearance-none"></select>
                     </div>
-                    <!-- Tanggal -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Tanggal</label>
                         <input type="date" id="input-date" required class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
-                <!-- Keterangan -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Catatan Singkat</label>
                     <input type="text" id="input-desc" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" placeholder="Makan siang, Bensin, dll">
                 </div>
 
-                <!-- Submit -->
-                <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white rounded-xl py-4 font-bold mt-4">
+                <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white rounded-xl py-4 font-bold mt-4 shadow-md">
                     Simpan Data
                 </button>
             </form>
@@ -201,7 +207,6 @@
             <span class="text-[10px] font-medium">Beranda</span>
         </button>
         
-        <!-- Tombol Tengah Mengambang (Floating Action Button style) -->
         <button onclick="openModal()" class="w-14 h-14 bg-blue-600 rounded-full flex justify-center items-center text-white shadow-lg shadow-blue-500/40 -translate-y-4 border-4 border-white">
             <i class="fa-solid fa-plus text-2xl"></i>
         </button>
@@ -217,13 +222,12 @@
          LOGIKA APLIKASI (JAVASCRIPT)
          ============================================== -->
     <script>
-        // --- 1. STATE & DATA ---
         let transactions = [];
         let modalType = 'expense';
-        let currentFilter = 'all'; // Untuk halaman riwayat
+        let currentFilter = 'all';
         let chartInstance = null;
+        let userName = ''; // State untuk menyimpan nama
 
-        // Kategori Statis dengan Ikon dan Warna
         const categories = {
             income: [
                 { id: 'Gaji', icon: 'fa-money-bill-wave', color: 'text-emerald-500', bg: 'bg-emerald-100' },
@@ -234,7 +238,7 @@
             expense: [
                 { id: 'Makanan', icon: 'fa-utensils', color: 'text-orange-500', bg: 'bg-orange-100' },
                 { id: 'Transport', icon: 'fa-car', color: 'text-blue-500', bg: 'bg-blue-100' },
-                { id: 'Tagihan', icon: 'fa-file-invoice-dollar', color: 'text-red-500', bg: 'bg-red-100' },
+                { id: 'Tagihan', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-100' },
                 { id: 'Belanja', icon: 'fa-bag-shopping', color: 'text-pink-500', bg: 'bg-pink-100' },
                 { id: 'Kesehatan', icon: 'fa-notes-medical', color: 'text-rose-500', bg: 'bg-rose-100' },
                 { id: 'Hiburan', icon: 'fa-gamepad', color: 'text-purple-500', bg: 'bg-purple-100' },
@@ -242,16 +246,76 @@
             ]
         };
 
-        // --- 2. PENYIMPANAN LOKAL (LOCALSTORAGE) ---
-        // Karena aplikasi ini belum disambungkan Firebase oleh user, kita gunakan LocalStorage HP
-        // agar data tersimpan meski aplikasi ditutup. Ini sangat cocok untuk PWA.
+        // --- MANAJEMEN USERNAME ---
+        function checkUserName() {
+            const savedName = localStorage.getItem('uangku_username');
+            const mainAppBlur = document.getElementById('page-home'); // Element yang diblur
+            const welcomeModal = document.getElementById('welcome-modal');
+
+            if (savedName) {
+                // User sudah pernah input nama
+                userName = savedName;
+                document.getElementById('display-username').innerText = `Halo, ${userName}!`;
+                
+                // Sembunyikan modal dan hapus efek blur
+                welcomeModal.style.display = 'none';
+                mainAppBlur.classList.remove('blur-sm');
+            } else {
+                // User baru
+                welcomeModal.style.display = 'flex';
+                // Fokuskan input (berguna di desktop, di HP keyboard akan naik)
+                setTimeout(() => { document.getElementById('input-username').focus(); }, 100);
+            }
+        }
+
+        document.getElementById('form-name').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('input-username').value.trim();
+            
+            if (nameInput) {
+                // Simpan nama
+                userName = nameInput;
+                localStorage.setItem('uangku_username', userName);
+                document.getElementById('display-username').innerText = `Halo, ${userName}!`;
+                
+                // Animasi tutup modal
+                const modal = document.getElementById('welcome-modal');
+                const content = document.getElementById('welcome-content');
+                const mainAppBlur = document.getElementById('page-home');
+                
+                content.classList.add('scale-95', 'opacity-0');
+                modal.classList.add('opacity-0');
+                mainAppBlur.classList.remove('blur-sm');
+
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+        });
+
+        // Fitur untuk mengganti nama (Icon pensil di header)
+        window.editName = function() {
+            localStorage.removeItem('uangku_username');
+            document.getElementById('input-username').value = userName; // Isi dengan nama sebelumnya
+            
+            const welcomeModal = document.getElementById('welcome-modal');
+            const content = document.getElementById('welcome-content');
+            const mainAppBlur = document.getElementById('page-home');
+            
+            content.classList.remove('scale-95', 'opacity-0');
+            welcomeModal.classList.remove('opacity-0');
+            welcomeModal.style.display = 'flex';
+            mainAppBlur.classList.add('blur-sm');
+        };
+
+        // --- PENYIMPANAN LOKAL DATA TRANSAKSI ---
         function loadLocalData() {
             const savedData = localStorage.getItem('uangku_data');
             if (savedData) {
                 transactions = JSON.parse(savedData);
                 updateSemuaUI();
             } else {
-                updateSemuaUI(); // Render state kosong
+                updateSemuaUI();
             }
         }
 
@@ -260,7 +324,6 @@
             updateSemuaUI();
         }
 
-        // --- 3. FORMATTER ---
         const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 
         function getCategoryData(type, id) {
@@ -268,7 +331,7 @@
             return catList.find(c => c.id === id) || { icon: 'fa-circle-question', color: 'text-slate-500', bg: 'bg-slate-100' };
         }
 
-        // --- 4. NAVIGASI BAWAH & MODAL ---
+        // --- NAVIGASI & MODAL ---
         function switchTab(pageId, tabId) {
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -282,11 +345,10 @@
             const content = document.getElementById('modal-content');
             
             document.getElementById('input-date').valueAsDate = new Date();
-            setModalType('expense'); // Default
+            setModalType('expense');
             
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            // Trigger reflow untuk animasi
             void modal.offsetWidth; 
             content.classList.remove('translate-y-full');
         }
@@ -300,7 +362,7 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.getElementById('form-add').reset();
-            }, 300); // Tunggu animasi CSS selesai
+            }, 300);
         }
 
         function setModalType(type) {
@@ -310,26 +372,23 @@
             const selCat = document.getElementById('input-category');
 
             if (type === 'expense') {
-                btnExp.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white text-red-500 shadow-sm transition-all";
+                btnExp.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white text-rose-500 shadow-sm transition-all";
                 btnInc.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 transition-all";
             } else {
                 btnInc.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white text-emerald-500 shadow-sm transition-all";
                 btnExp.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 transition-all";
             }
 
-            // Update Options
             selCat.innerHTML = '<option value="" disabled selected>Pilih...</option>';
             categories[type].forEach(cat => {
                 selCat.innerHTML += `<option value="${cat.id}">${cat.id}</option>`;
             });
         }
 
-        // --- 5. RENDER UI ---
+        // --- RENDER UI ---
         function updateSemuaUI() {
-            // Urutkan transaksi: terbaru di atas
             transactions.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
 
-            // Hitung Saldo
             let tInc = 0, tExp = 0;
             transactions.forEach(t => {
                 if (t.type === 'income') tInc += t.amount;
@@ -340,17 +399,14 @@
             document.getElementById('home-total-income').innerText = formatIDR(tInc);
             document.getElementById('home-total-expense').innerText = formatIDR(tExp);
 
-            // Render List Beranda (Maksimal 5)
             renderList(transactions.slice(0, 5), 'home-recent-list');
             
-            // Render List Riwayat (Semua, berdasarkan filter)
             let filteredTrans = transactions;
             if (currentFilter !== 'all') {
                 filteredTrans = transactions.filter(t => t.type === currentFilter);
             }
             renderList(filteredTrans, 'full-history-list', true);
 
-            // Render Chart
             renderChart();
         }
 
@@ -371,7 +427,6 @@
                 const catInfo = getCategoryData(t.type, t.category);
                 const dateStr = new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
                 
-                // Jika di halaman riwayat, tambahkan tombol hapus
                 let deleteBtn = '';
                 if (allowDelete) {
                     deleteBtn = `<button onclick="hapusTransaksi(${t.id})" class="ml-3 text-slate-300 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>`;
@@ -400,71 +455,98 @@
         }
 
         function renderChart() {
-            const ctx = document.getElementById('expenseChart');
+            const ctx = document.getElementById('cashflowChart');
             const emptyMsg = document.getElementById('empty-chart-msg');
             
-            // Ambil pengeluaran saja bulan ini (Asumsi sederhana: abaikan bulan, kumpulkan kategori saja)
-            const expenses = transactions.filter(t => t.type === 'expense');
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
             
-            if (expenses.length === 0) {
+            const currentMonthData = transactions.filter(t => {
+                const dateObj = new Date(t.date);
+                return dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear;
+            });
+
+            if (currentMonthData.length === 0) {
                 if (chartInstance) chartInstance.destroy();
                 emptyMsg.classList.remove('hidden');
                 return;
             }
             emptyMsg.classList.add('hidden');
 
-            // Hitung total per kategori pengeluaran
-            const catTotals = {};
-            expenses.forEach(t => {
-                catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
-            });
+            let totalPemasukanBulanIni = 0;
+            let totalPengeluaranBulanIni = 0;
 
-            const labels = Object.keys(catTotals);
-            const dataValues = Object.values(catTotals);
-            
-            // Generate warna berdasarkan kategori
-            const bgColors = labels.map(label => {
-                const info = getCategoryData('expense', label);
-                // Ubah kelas tailwind text-red-500 menjadi warna hex untuk chart (Pendekatan sederhana)
-                if(info.color.includes('red')) return '#ef4444';
-                if(info.color.includes('orange')) return '#f97316';
-                if(info.color.includes('blue')) return '#3b82f6';
-                if(info.color.includes('pink')) return '#ec4899';
-                if(info.color.includes('rose')) return '#f43f5e';
-                if(info.color.includes('purple')) return '#a855f7';
-                return '#94a3b8'; // default
+            currentMonthData.forEach(t => {
+                if(t.type === 'income') totalPemasukanBulanIni += t.amount;
+                if(t.type === 'expense') totalPengeluaranBulanIni += t.amount;
             });
 
             if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: ['Pemasukan', 'Pengeluaran'],
                     datasets: [{
-                        data: dataValues,
-                        backgroundColor: bgColors,
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        label: 'Arus Kas Bulan Ini (Rp)',
+                        data: [totalPemasukanBulanIni, totalPengeluaranBulanIni],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(244, 63, 94, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(244, 63, 94)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barThickness: 40
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%',
                     plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 10, font: {size: 10} } }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += formatIDR(context.parsed.y); }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [4, 4], color: '#e2e8f0' },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000) + 'Jt';
+                                    if (value >= 1000) return (value / 1000) + 'Rb';
+                                    return value;
+                                },
+                                font: { size: 10 }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold' } }
+                        }
                     }
                 }
             });
         }
 
-        // --- 6. INTERAKSI USER (SUBMIT & HAPUS) ---
+        // --- INTERAKSI USER ---
         document.getElementById('form-add').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const newT = {
-                id: Date.now(), // Unique ID
+                id: Date.now(),
                 type: modalType,
                 amount: parseFloat(document.getElementById('input-amount').value),
                 category: document.getElementById('input-category').value,
@@ -473,7 +555,7 @@
             };
 
             transactions.push(newT);
-            saveLocalData(); // Simpan & Render UI
+            saveLocalData();
             closeModal();
         });
 
@@ -487,7 +569,6 @@
         window.filterHistory = function(type) {
             currentFilter = type;
             
-            // Atur gaya tombol filter
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('bg-slate-800', 'text-white');
                 btn.classList.add('bg-slate-200', 'text-slate-600');
@@ -502,15 +583,16 @@
 
         // --- INISIALISASI ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Tutup modal jika klik area luar modal
             document.getElementById('transaction-modal').addEventListener('click', function(e) {
                 if (e.target === this) closeModal();
             });
+            
+            // Cek nama pengguna saat aplikasi pertama dimuat
+            checkUserName();
             
             loadLocalData();
         });
     </script>
 </body>
 </html>
-
 
