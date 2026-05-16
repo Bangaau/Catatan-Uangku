@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Tesseract JS untuk AI Scan Struk (OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
@@ -114,7 +112,13 @@
     <!-- HALAMAN 2: REKAP BULANAN -->
     <div id="page-recap" class="page page-content p-4">
         <header class="mb-6 pt-2 sticky top-0 bg-[#f8fafc] z-10 pb-2">
-            <h1 class="text-2xl font-bold text-slate-900 mb-4">Rekap Bulanan</h1>
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold text-slate-900">Rekap Bulanan</h1>
+                <!-- FITUR BARU: TOMBOL UNDUH CSV -->
+                <button onclick="downloadRekapCSV()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-download"></i> Unduh CSV
+                </button>
+            </div>
             <div class="relative">
                 <input type="month" id="recap-month" onchange="renderRekap()" class="w-full pl-4 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold shadow-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
                 <i class="fa-solid fa-calendar-days absolute right-4 top-4 text-slate-400 pointer-events-none"></i>
@@ -161,16 +165,13 @@
 
     <!-- MODAL (POPUP) TAMBAH TRANSAKSI -->
     <div id="transaction-modal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex-col justify-end backdrop-blur-sm transition-opacity">
-        
-        <!-- LOADING OVERLAY UNTUK SCAN STRUK -->
         <div id="ocr-loading" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-[60] flex-col justify-center items-center rounded-t-3xl">
             <i class="fa-solid fa-expand fa-spin text-5xl text-blue-600 mb-4"></i>
             <h3 class="text-lg font-bold text-slate-800">Membaca Struk...</h3>
-            <p class="text-sm text-slate-500 mt-2 text-center px-8">AI sedang memproses gambar. Scan pertama kali memakan waktu lebih lama untuk memuat modul AI.</p>
+            <p class="text-sm text-slate-500 mt-2 text-center px-8">AI sedang memproses gambar. Scan pertama kali memakan waktu lebih lama.</p>
         </div>
 
         <div class="bg-white w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative" id="modal-content">
-            
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-slate-900">Catat Transaksi</h2>
                 <button onclick="closeModal()" class="w-8 h-8 bg-slate-100 rounded-full flex justify-center items-center text-slate-500 hover:bg-slate-200">
@@ -185,18 +186,13 @@
                 </div>
 
                 <div class="relative pt-2">
-                    <!-- HEADER NOMINAL & TOMBOL SCAN -->
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-xs font-bold text-slate-500 ml-1">Nominal (Rp)</label>
-                        
-                        <!-- TOMBOL KAMERA SCAN -->
                         <button type="button" onclick="document.getElementById('input-scan').click()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm">
                             <i class="fa-solid fa-camera"></i> Scan Struk
                         </button>
-                        <!-- INPUT FILE HIDDEN UNTUK KAMERA -->
                         <input type="file" id="input-scan" accept="image/*" capture="environment" class="hidden" onchange="processReceipt(this)">
                     </div>
-
                     <span class="absolute left-4 top-[2.4rem] text-slate-400 font-bold">Rp</span>
                     <input type="text" inputmode="numeric" id="input-amount" required class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold text-2xl text-slate-800 outline-none transition-colors" placeholder="0">
                 </div>
@@ -269,46 +265,88 @@
             ]
         };
 
-        // --- FITUR BARU: AI SCAN STRUK (OCR) ---
+        // --- FITUR BARU: DOWNLOAD DATA REKAP (CSV) ---
+        window.downloadRekapCSV = function() {
+            const monthInputStr = document.getElementById('recap-month').value;
+            if(!monthInputStr) return;
+            const [year, month] = monthInputStr.split('-');
+
+            // Ambil data khusus bulan yang dipilih
+            const monthData = transactions.filter(t => {
+                const d = new Date(t.date);
+                return d.getFullYear() == year && String(d.getMonth() + 1).padStart(2, '0') == month;
+            });
+
+            if (monthData.length === 0) {
+                alert("Tidak ada data transaksi di bulan ini untuk diunduh.");
+                return;
+            }
+
+            // Siapkan text CSV
+            let csvContent = "Tanggal,Tipe,Kategori,Keterangan,Nominal(Rp)\n";
+
+            // Urutkan berdasarkan tanggal terlama ke terbaru agar rapi di Excel
+            monthData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let totalIn = 0, totalOut = 0;
+
+            monthData.forEach(t => {
+                const typeStr = t.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+                // Tambahkan tanda kutip pada keterangan agar jika ada koma (,) tidak memutus kolom Excel
+                const descStr = `"${t.description.replace(/"/g, '""')}"`;
+                
+                csvContent += `${t.date},${typeStr},${t.category},${descStr},${t.amount}\n`;
+
+                if(t.type === 'income') totalIn += t.amount;
+                if(t.type === 'expense') totalOut += t.amount;
+            });
+
+            // Tambahkan baris total di paling bawah
+            csvContent += `\n,,,TOTAL PEMASUKAN,${totalIn}\n`;
+            csvContent += `,,,TOTAL PENGELUARAN,${totalOut}\n`;
+            csvContent += `,,,SISA UANG,${totalIn - totalOut}\n`;
+
+            // Proses Download File
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Rekap_UangKu_${year}_${month}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // --- AI SCAN STRUK (OCR) ---
         async function processReceipt(input) {
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
-
-            // Tampilkan Loading Overlay
             const loadingOverlay = document.getElementById('ocr-loading');
-            loadingOverlay.classList.remove('hidden');
-            loadingOverlay.classList.add('flex');
+            loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex');
 
             try {
-                // Menggunakan Tesseract.js API (AI berjalan di browser pengguna)
                 const result = await Tesseract.recognize(file, 'ind');
-                const text = result.data.text;
-                console.log("Hasil Teks Struk:\n", text);
-
-                // Algoritma Membaca Total Harga dari Teks Struk Berantakan
+                const text = result.data.text.toUpperCase();
                 let guessedTotal = 0;
-                const lines = text.toUpperCase().split('\n');
+                const lines = text.split('\n');
 
-                // Langkah 1: Coba cari baris yang mengandung kata TOTAL atau JUMLAH
                 for (let i = 0; i < lines.length; i++) {
                     if (lines[i].includes('TOTAL') || lines[i].includes('JUMLAH') || lines[i].includes('TTL')) {
-                        let nums = lines[i].match(/[\d.,]+/g); // Ambil angka saja
+                        let nums = lines[i].match(/[\d.,]+/g);
                         if (nums) {
                             for(let numStr of nums) {
-                                // Bersihkan format ribuan Indonesia
                                 let cleanNum = parseFloat(numStr.replace(/\./g, '').replace(/,/g, ''));
-                                // Logika asuransi: Total jarang lebih dari 1 Miliar untuk belanja harian
-                                if (cleanNum > guessedTotal && cleanNum < 1000000000) {
-                                    guessedTotal = cleanNum;
-                                }
+                                if (cleanNum > guessedTotal && cleanNum < 1000000000) guessedTotal = cleanNum;
                             }
                         }
                     }
                 }
 
-                // Langkah 2: Jika kata TOTAL tidak terdeteksi, cari angka terbesar di seluruh struk (Format titik)
                 if (guessedTotal === 0) {
-                    let numMatches = text.match(/\b\d{1,3}(?:\.\d{3})+\b/g); // Cari format seperti 15.000
+                    let numMatches = text.match(/\b\d{1,3}(?:\.\d{3})+\b/g);
                     if (numMatches) {
                         for(let numStr of numMatches) {
                             let cleanNum = parseFloat(numStr.replace(/\./g, ''));
@@ -317,40 +355,29 @@
                     }
                 }
 
-                // Langkah 3: Update Form Input
                 if (guessedTotal > 0) {
-                    const formatID = new Intl.NumberFormat('id-ID').format(guessedTotal);
-                    document.getElementById('input-amount').value = formatID;
+                    document.getElementById('input-amount').value = new Intl.NumberFormat('id-ID').format(guessedTotal);
                     document.getElementById('input-desc').value = 'Belanja (Scan Struk)';
-                    
-                    // Set kategori jadi pengeluaran dan Belanja secara otomatis
                     setModalType('expense');
                     document.getElementById('input-category').value = 'Belanja';
-
-                    alert("🎉 AI berhasil menemukan nominal: Rp " + formatID + "\n\nPastikan nominal sudah benar sebelum disimpan!");
+                    alert("🎉 AI berhasil menemukan nominal: Rp " + new Intl.NumberFormat('id-ID').format(guessedTotal) + "\nPastikan nominal sudah benar sebelum disimpan!");
                 } else {
-                    alert("Maaf, AI gagal membaca angka total dari struk ini. Foto mungkin kurang jelas. Silakan input manual.");
+                    alert("Maaf, AI gagal membaca angka total dari struk ini. Silakan input manual.");
                 }
-
             } catch (error) {
                 console.error("OCR Error:", error);
                 alert("Terjadi kesalahan sistem saat memproses gambar.");
             } finally {
-                // Sembunyikan Loading
-                loadingOverlay.classList.add('hidden');
-                loadingOverlay.classList.remove('flex');
-                input.value = ''; // Reset file input agar bisa scan gambar yg sama lagi
+                loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex');
+                input.value = ''; 
             }
         }
 
         // --- FORMAT TITIK OTOMATIS ---
         document.getElementById('input-amount').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
-            if (value !== '') {
-                this.value = new Intl.NumberFormat('id-ID').format(value);
-            } else {
-                this.value = '';
-            }
+            if (value !== '') this.value = new Intl.NumberFormat('id-ID').format(value);
+            else this.value = '';
         });
 
         // --- MANAJEMEN USERNAME ---
