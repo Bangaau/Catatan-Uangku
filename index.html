@@ -39,6 +39,11 @@
         }
 
         .tab-btn.active { color: #2563eb; }
+        
+        /* Animasi Transisi untuk Tab Rekap */
+        .recap-tab-btn { transition: all 0.2s ease; }
+        .recap-tab-active { background-color: #1e293b; color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .recap-tab-inactive { background-color: transparent; color: #64748b; }
     </style>
 </head>
 <body class="text-slate-800 font-sans h-screen w-screen flex flex-col relative">
@@ -51,7 +56,6 @@
             </div>
             <h2 class="text-2xl font-bold text-slate-900 mb-2">Selamat Datang!</h2>
             <p class="text-slate-500 text-sm mb-8">Mari mulai atur keuanganmu dengan lebih baik. Siapa nama panggilanmu?</p>
-            
             <form id="form-name" class="space-y-4">
                 <input type="text" id="input-username" required autocomplete="off" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" placeholder="Masukkan nama...">
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 font-bold shadow-md transition-colors">
@@ -109,39 +113,72 @@
         </div>
     </div>
 
-    <!-- HALAMAN 2: REKAP BULANAN -->
+    <!-- HALAMAN 2: REKAP KEUANGAN -->
     <div id="page-recap" class="page page-content p-4">
-        <header class="mb-6 pt-2 sticky top-0 bg-[#f8fafc] z-10 pb-2">
+        <header class="mb-4 pt-2 sticky top-0 bg-[#f8fafc] z-20 pb-2">
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold text-slate-900">Rekap Bulanan</h1>
-                <!-- FITUR BARU: TOMBOL UNDUH CSV -->
+                <h1 id="recap-header-title" class="text-2xl font-bold text-slate-900">Rekap Bulanan</h1>
                 <button onclick="downloadRekapCSV()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors">
                     <i class="fa-solid fa-download"></i> Unduh CSV
                 </button>
             </div>
-            <div class="relative">
-                <input type="month" id="recap-month" onchange="renderRekap()" class="w-full pl-4 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold shadow-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
-                <i class="fa-solid fa-calendar-days absolute right-4 top-4 text-slate-400 pointer-events-none"></i>
+
+            <!-- Segmented Control Harian | Mingguan | Bulanan -->
+            <div class="bg-slate-200/60 p-1 rounded-xl flex items-center mb-4">
+                <button onclick="changeRecapTab('daily')" id="rtab-daily" class="recap-tab-btn recap-tab-inactive flex-1 py-1.5 text-sm font-bold rounded-lg text-center">Harian</button>
+                <button onclick="changeRecapTab('weekly')" id="rtab-weekly" class="recap-tab-btn recap-tab-inactive flex-1 py-1.5 text-sm font-bold rounded-lg text-center">Mingguan</button>
+                <button onclick="changeRecapTab('monthly')" id="rtab-monthly" class="recap-tab-btn recap-tab-active flex-1 py-1.5 text-sm font-bold rounded-lg text-center">Bulanan</button>
+            </div>
+
+            <!-- Date Navigator -->
+            <div class="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex justify-between items-center">
+                <button onclick="shiftRecapPeriod(-1)" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="text-center flex-1">
+                    <p id="recap-period-label" class="font-bold text-slate-800 text-sm">Mei 2026</p>
+                </div>
+                <button onclick="shiftRecapPeriod(1)" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
         </header>
 
+        <!-- Kartu Ringkasan Net -->
         <div class="grid grid-cols-2 gap-3 mb-6">
             <div class="col-span-2 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-center">
-                <p class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wide">Sisa Uang Bulan Ini</p>
+                <p id="recap-balance-label" class="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wide">Sisa Uang Bulan Ini</p>
                 <p id="recap-balance" class="text-3xl font-bold text-slate-800">Rp 0</p>
             </div>
             <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
-                <p class="text-xs text-emerald-600 font-bold mb-1"><i class="fa-solid fa-plus-circle mr-1"></i>Pemasukan</p>
+                <p class="text-xs text-emerald-600 font-bold mb-1"><i class="fa-solid fa-arrow-down mr-1"></i>Pemasukan</p>
                 <p id="recap-income" class="text-lg font-bold text-emerald-700">Rp 0</p>
             </div>
             <div class="bg-rose-50 border border-rose-100 p-4 rounded-2xl">
-                <p class="text-xs text-rose-600 font-bold mb-1"><i class="fa-solid fa-minus-circle mr-1"></i>Pengeluaran</p>
+                <p class="text-xs text-rose-600 font-bold mb-1"><i class="fa-solid fa-arrow-up mr-1"></i>Pengeluaran</p>
                 <p id="recap-expense" class="text-lg font-bold text-rose-700">Rp 0</p>
             </div>
         </div>
 
-        <h3 class="font-bold text-slate-700 mb-3 text-sm">Rincian Pengeluaran per Kategori</h3>
-        <div id="recap-category-list" class="space-y-3"></div>
+        <!-- KOMPONEN MINGGUAN: Grafik Batang Mini -->
+        <div id="recap-weekly-chart-container" class="hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
+            <h3 class="font-bold text-slate-700 text-sm mb-3">Tren Pengeluaran Harian</h3>
+            <div class="relative h-40 w-full">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- KOMPONEN HARIAN: Timeline Transaksi -->
+        <div id="recap-daily-timeline-container" class="hidden mb-6">
+            <h3 class="font-bold text-slate-700 text-sm mb-3 ml-1">Transaksi Hari Ini</h3>
+            <div id="recap-daily-list" class="space-y-3">
+                <!-- Diisi via JS -->
+            </div>
+        </div>
+
+        <!-- RINCIAN KATEGORI PENGELUARAN (Tampil di semua tab) -->
+        <h3 class="font-bold text-slate-700 mb-3 text-sm ml-1">Rincian Pengeluaran</h3>
+        <div id="recap-category-list" class="space-y-3 mb-6"></div>
     </div>
 
     <!-- HALAMAN 3: RIWAYAT TRANSAKSI -->
@@ -241,11 +278,20 @@
 
     <!-- LOGIKA APLIKASI -->
     <script>
+        // --- GLOBAL STATE ---
         let transactions = [];
         let modalType = 'expense';
         let currentFilter = 'all';
-        let chartInstance = null;
+        let homeChartInstance = null;
         let userName = '';
+
+        // State Khusus Fitur Rekap
+        let activeRecapMode = 'monthly'; // 'daily', 'weekly', 'monthly'
+        let currentRecapDate = new Date(); // Anchor date untuk navigasi periode
+        let weeklyChartInstance = null;
+        
+        // Menyimpan data filter saat ini untuk CSV
+        let currentRecapFilteredData = []; 
 
         const categories = {
             income: [
@@ -265,54 +311,273 @@
             ]
         };
 
-        // --- FITUR BARU: DOWNLOAD DATA REKAP (CSV) ---
-        window.downloadRekapCSV = function() {
-            const monthInputStr = document.getElementById('recap-month').value;
-            if(!monthInputStr) return;
-            const [year, month] = monthInputStr.split('-');
+        // --- HELPER DATES & FORMATTERS ---
+        const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+        const toDateString = (d) => {
+            const z = n => ('0' + n).slice(-2);
+            return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+        }
+        
+        // Mendapatkan awal minggu (Senin)
+        const getStartOfWeek = (d) => {
+            const date = new Date(d);
+            const day = date.getDay() || 7; // Buat Minggu jadi 7
+            date.setDate(date.getDate() - day + 1);
+            return date;
+        }
 
-            // Ambil data khusus bulan yang dipilih
-            const monthData = transactions.filter(t => {
-                const d = new Date(t.date);
-                return d.getFullYear() == year && String(d.getMonth() + 1).padStart(2, '0') == month;
+        // Mendapatkan akhir minggu (Minggu)
+        const getEndOfWeek = (d) => {
+            const date = new Date(d);
+            const day = date.getDay() || 7;
+            date.setDate(date.getDate() + (7 - day));
+            return date;
+        }
+
+        function getCategoryData(type, id) {
+            const catList = categories[type];
+            return catList.find(c => c.id === id) || { icon: 'fa-circle-question', color: 'text-slate-500', bg: 'bg-slate-100' };
+        }
+
+        // --- LOGIKA HALAMAN REKAP ---
+        
+        // Mengganti Tab Harian/Mingguan/Bulanan
+        window.changeRecapTab = function(mode) {
+            activeRecapMode = mode;
+            
+            // Update UI Button
+            ['daily', 'weekly', 'monthly'].forEach(m => {
+                const btn = document.getElementById(`rtab-${m}`);
+                if (m === mode) {
+                    btn.classList.remove('recap-tab-inactive');
+                    btn.classList.add('recap-tab-active');
+                } else {
+                    btn.classList.remove('recap-tab-active');
+                    btn.classList.add('recap-tab-inactive');
+                }
             });
 
-            if (monthData.length === 0) {
-                alert("Tidak ada data transaksi di bulan ini untuk diunduh.");
+            // Update Header Title
+            const headerTitles = { daily: 'Rekap Harian', weekly: 'Rekap Mingguan', monthly: 'Rekap Bulanan' };
+            document.getElementById('recap-header-title').innerText = headerTitles[mode];
+
+            renderRekap();
+        };
+
+        // Menggeser Periode Kalender Kiri/Kanan
+        window.shiftRecapPeriod = function(direction) {
+            if (activeRecapMode === 'daily') {
+                currentRecapDate.setDate(currentRecapDate.getDate() + direction);
+            } else if (activeRecapMode === 'weekly') {
+                currentRecapDate.setDate(currentRecapDate.getDate() + (direction * 7));
+            } else if (activeRecapMode === 'monthly') {
+                currentRecapDate.setMonth(currentRecapDate.getMonth() + direction);
+            }
+            renderRekap();
+        };
+
+        // Render Data Rekap Utama
+        function renderRekap() {
+            let startDateStr, endDateStr, labelPeriod;
+            
+            // 1. Tentukan Rentang Tanggal & Label UI
+            if (activeRecapMode === 'daily') {
+                startDateStr = toDateString(currentRecapDate);
+                endDateStr = startDateStr;
+                
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                labelPeriod = currentRecapDate.toLocaleDateString('id-ID', options);
+                
+                document.getElementById('recap-balance-label').innerText = "Sisa Uang Hari Ini";
+                
+                // Toggle Visibility Komponen Spesifik
+                document.getElementById('recap-weekly-chart-container').classList.add('hidden');
+                document.getElementById('recap-daily-timeline-container').classList.remove('hidden');
+                
+            } else if (activeRecapMode === 'weekly') {
+                const startW = getStartOfWeek(currentRecapDate);
+                const endW = getEndOfWeek(currentRecapDate);
+                startDateStr = toDateString(startW);
+                endDateStr = toDateString(endW);
+                
+                const startFmt = startW.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                const endFmt = endW.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                labelPeriod = `${startFmt} - ${endFmt}`;
+                
+                document.getElementById('recap-balance-label').innerText = "Sisa Uang Minggu Ini";
+                
+                document.getElementById('recap-weekly-chart-container').classList.remove('hidden');
+                document.getElementById('recap-daily-timeline-container').classList.add('hidden');
+                
+            } else if (activeRecapMode === 'monthly') {
+                const year = currentRecapDate.getFullYear();
+                const month = currentRecapDate.getMonth();
+                const startM = new Date(year, month, 1);
+                const endM = new Date(year, month + 1, 0); // Hari terakhir
+                
+                startDateStr = toDateString(startM);
+                endDateStr = toDateString(endM);
+                
+                labelPeriod = currentRecapDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                document.getElementById('recap-balance-label').innerText = "Sisa Uang Bulan Ini";
+                
+                document.getElementById('recap-weekly-chart-container').classList.add('hidden');
+                document.getElementById('recap-daily-timeline-container').classList.add('hidden');
+            }
+
+            // Update Label Kalender
+            document.getElementById('recap-period-label').innerText = labelPeriod;
+
+            // 2. Filter Transaksi Berdasarkan Rentang
+            currentRecapFilteredData = transactions.filter(t => t.date >= startDateStr && t.date <= endDateStr);
+
+            // 3. Kalkulasi Total & Rincian Kategori
+            let tInc = 0, tExp = 0;
+            const categoryTotals = {}; 
+            const weeklyExpData = [0,0,0,0,0,0,0]; // Indeks 0 = Senin, 6 = Minggu
+
+            currentRecapFilteredData.forEach(t => {
+                if (t.type === 'income') tInc += t.amount;
+                if (t.type === 'expense') {
+                    tExp += t.amount;
+                    categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+                    
+                    if (activeRecapMode === 'weekly') {
+                        const tDate = new Date(t.date);
+                        let dayIdx = (tDate.getDay() || 7) - 1; // Senin = 0, Minggu = 6
+                        weeklyExpData[dayIdx] += t.amount;
+                    }
+                }
+            });
+
+            // Update Card Saldo
+            const netBalance = tInc - tExp;
+            document.getElementById('recap-income').innerText = formatIDR(tInc);
+            document.getElementById('recap-expense').innerText = formatIDR(tExp);
+            const balanceEl = document.getElementById('recap-balance');
+            balanceEl.innerText = formatIDR(netBalance);
+            balanceEl.className = `text-3xl font-bold ${netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+
+            // 4. Render Rincian Kategori
+            const catListContainer = document.getElementById('recap-category-list');
+            catListContainer.innerHTML = '';
+            if (tExp === 0) {
+                catListContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">Mantap! Tidak ada pengeluaran di periode ini.</div>`;
+            } else {
+                Object.keys(categoryTotals).sort((a,b) => categoryTotals[b] - categoryTotals[a]).forEach(cat => {
+                    const amount = categoryTotals[cat];
+                    const percentage = Math.round((amount / tExp) * 100);
+                    const catInfo = getCategoryData('expense', cat);
+                    catListContainer.innerHTML += `
+                        <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
+                            <div class="absolute left-0 top-0 bottom-0 ${catInfo.bg} opacity-30" style="width: ${percentage}%"></div>
+                            <div class="relative z-10 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-slate-100 ${catInfo.color}"><i class="fa-solid ${catInfo.icon}"></i></div>
+                                    <div><p class="font-bold text-slate-800 text-sm">${cat}</p><p class="text-[11px] text-slate-400">${percentage}% dari pengeluaran</p></div>
+                                </div>
+                                <p class="font-bold text-slate-800 text-sm">${formatIDR(amount)}</p>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            // 5. Render Komponen Ekstra sesuai Mode
+            if (activeRecapMode === 'weekly') renderWeeklyChart(weeklyExpData);
+            if (activeRecapMode === 'daily') renderDailyTimeline();
+        }
+
+        // Render Grafik Mingguan
+        function renderWeeklyChart(dataArray) {
+            const ctx = document.getElementById('weeklyChart');
+            if (weeklyChartInstance) weeklyChartInstance.destroy();
+            
+            weeklyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        data: dataArray,
+                        backgroundColor: 'rgba(244, 63, 94, 0.8)', // Rose-500
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => formatIDR(c.parsed.y) } } },
+                    scales: {
+                        y: { display: false, beginAtZero: true }, // Sembunyikan garis Y agar minimalis
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // Render Timeline Harian (Mini History)
+        function renderDailyTimeline() {
+            const container = document.getElementById('recap-daily-list');
+            container.innerHTML = '';
+            
+            // Ambil data hari ini saja, urutkan dari terbaru
+            const dailyData = currentRecapFilteredData.sort((a, b) => b.id - a.id);
+
+            if (dailyData.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">Belum ada transaksi dicatat hari ini.</div>`;
                 return;
             }
 
-            // Siapkan text CSV
+            dailyData.forEach(t => {
+                const isInc = t.type === 'income';
+                const catInfo = getCategoryData(t.type, t.category);
+                
+                container.innerHTML += `
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                        <div class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${catInfo.bg} ${catInfo.color}">
+                            <i class="fa-solid ${catInfo.icon} text-xs"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="font-bold text-slate-800 text-sm leading-tight truncate">${t.description}</p>
+                            <p class="text-[10px] text-slate-400">${t.category}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="font-bold text-sm ${isInc ? 'text-emerald-500' : 'text-slate-800'}">${isInc ? '+' : '-'}${formatIDR(t.amount)}</p>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // Download CSV Dinamis
+        window.downloadRekapCSV = function() {
+            if (currentRecapFilteredData.length === 0) {
+                alert("Tidak ada data di periode ini untuk diunduh.");
+                return;
+            }
+
             let csvContent = "Tanggal,Tipe,Kategori,Keterangan,Nominal(Rp)\n";
-
-            // Urutkan berdasarkan tanggal terlama ke terbaru agar rapi di Excel
-            monthData.sort((a, b) => new Date(a.date) - new Date(b.date));
-
+            // Urutkan terlama ke terbaru
+            const exportData = [...currentRecapFilteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
             let totalIn = 0, totalOut = 0;
 
-            monthData.forEach(t => {
+            exportData.forEach(t => {
                 const typeStr = t.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
-                // Tambahkan tanda kutip pada keterangan agar jika ada koma (,) tidak memutus kolom Excel
                 const descStr = `"${t.description.replace(/"/g, '""')}"`;
-                
                 csvContent += `${t.date},${typeStr},${t.category},${descStr},${t.amount}\n`;
 
                 if(t.type === 'income') totalIn += t.amount;
                 if(t.type === 'expense') totalOut += t.amount;
             });
 
-            // Tambahkan baris total di paling bawah
-            csvContent += `\n,,,TOTAL PEMASUKAN,${totalIn}\n`;
-            csvContent += `,,,TOTAL PENGELUARAN,${totalOut}\n`;
-            csvContent += `,,,SISA UANG,${totalIn - totalOut}\n`;
+            csvContent += `\n,,,TOTAL PEMASUKAN,${totalIn}\n,,,TOTAL PENGELUARAN,${totalOut}\n,,,SISA UANG,${totalIn - totalOut}\n`;
 
-            // Proses Download File
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             
             link.setAttribute("href", url);
-            link.setAttribute("download", `Rekap_UangKu_${year}_${month}.csv`);
+            // Nama file dinamis
+            const dateLabel = document.getElementById('recap-period-label').innerText.replace(/\s/g, '_');
+            link.setAttribute("download", `Rekap_${activeRecapMode}_${dateLabel}.csv`);
             link.style.visibility = 'hidden';
             
             document.body.appendChild(link);
@@ -320,7 +585,9 @@
             document.body.removeChild(link);
         };
 
-        // --- AI SCAN STRUK (OCR) ---
+        // --- SISTEM UTAMA LAINNYA ---
+        
+        // AI OCR Struk
         async function processReceipt(input) {
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
@@ -357,15 +624,14 @@
 
                 if (guessedTotal > 0) {
                     document.getElementById('input-amount').value = new Intl.NumberFormat('id-ID').format(guessedTotal);
-                    document.getElementById('input-desc').value = 'Belanja (Scan Struk)';
+                    document.getElementById('input-desc').value = 'Belanja (Scan)';
                     setModalType('expense');
                     document.getElementById('input-category').value = 'Belanja';
-                    alert("🎉 AI berhasil menemukan nominal: Rp " + new Intl.NumberFormat('id-ID').format(guessedTotal) + "\nPastikan nominal sudah benar sebelum disimpan!");
+                    alert("🎉 Nominal ditemukan: Rp " + new Intl.NumberFormat('id-ID').format(guessedTotal));
                 } else {
-                    alert("Maaf, AI gagal membaca angka total dari struk ini. Silakan input manual.");
+                    alert("Gagal membaca angka total. Silakan input manual.");
                 }
             } catch (error) {
-                console.error("OCR Error:", error);
                 alert("Terjadi kesalahan sistem saat memproses gambar.");
             } finally {
                 loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex');
@@ -373,14 +639,13 @@
             }
         }
 
-        // --- FORMAT TITIK OTOMATIS ---
         document.getElementById('input-amount').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
             if (value !== '') this.value = new Intl.NumberFormat('id-ID').format(value);
             else this.value = '';
         });
 
-        // --- MANAJEMEN USERNAME ---
+        // Manajemen User
         function checkUserName() {
             const savedName = localStorage.getItem('uangku_username');
             const mainAppBlur = document.getElementById('page-home');
@@ -428,15 +693,11 @@
             mainAppBlur.classList.add('blur-sm');
         };
 
-        // --- PENYIMPANAN DATA LOKAL ---
+        // Simpan/Muat Data
         function loadLocalData() {
             const savedData = localStorage.getItem('uangku_data');
-            if (savedData) {
-                transactions = JSON.parse(savedData);
-                updateSemuaUI();
-            } else {
-                updateSemuaUI();
-            }
+            if (savedData) transactions = JSON.parse(savedData);
+            updateSemuaUI();
         }
 
         function saveLocalData() {
@@ -452,19 +713,18 @@
             }
         }
 
-        const formatIDR = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-        function getCategoryData(type, id) {
-            const catList = categories[type];
-            return catList.find(c => c.id === id) || { icon: 'fa-circle-question', color: 'text-slate-500', bg: 'bg-slate-100' };
-        }
-
-        // --- NAVIGASI & MODAL ---
+        // Navigasi & Modal
         function switchTab(pageId, tabId) {
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             if(tabId !== 'tab-profile') document.getElementById(tabId).classList.add('active');
-            if (pageId === 'page-recap') renderRekap();
+            
+            if (pageId === 'page-recap') {
+                // Reset anchor date ke hari ini tiap kali buka tab Rekap
+                currentRecapDate = new Date(); 
+                renderRekap();
+            }
         }
 
         function openModal() {
@@ -502,38 +762,39 @@
                 btnInc.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white text-emerald-500 shadow-sm transition-all";
                 btnExp.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 transition-all";
             }
-
             selCat.innerHTML = '<option value="" disabled selected>Pilih...</option>';
             categories[type].forEach(cat => { selCat.innerHTML += `<option value="${cat.id}">${cat.id}</option>`; });
         }
 
-        // --- RENDER SEMUA UI ---
+        // Render UI Beranda & History
         function updateSemuaUI() {
             transactions.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+            
+            // Update Home
             let tInc = 0, tExp = 0;
             transactions.forEach(t => {
                 if (t.type === 'income') tInc += t.amount;
                 if (t.type === 'expense') tExp += t.amount;
             });
-            
             document.getElementById('home-total-balance').innerText = formatIDR(tInc - tExp);
             document.getElementById('home-total-income').innerText = formatIDR(tInc);
             document.getElementById('home-total-expense').innerText = formatIDR(tExp);
 
-            renderList(transactions.slice(0, 5), 'home-recent-list'); 
-            let filteredTrans = currentFilter !== 'all' ? transactions.filter(t => t.type === currentFilter) : transactions;
+            const sortedForList = [...transactions].sort((a, b) => b.id - a.id);
+            renderList(sortedForList.slice(0, 5), 'home-recent-list'); 
+            
+            let filteredTrans = currentFilter !== 'all' ? sortedForList.filter(t => t.type === currentFilter) : sortedForList;
             renderList(filteredTrans, 'full-history-list', true); 
 
-            renderChart();
-            renderRekap(); 
+            renderHomeChart();
+            renderRekap(); // Refresh data di layar Rekap jika aktif
         }
 
         function renderList(dataArray, containerId, allowDelete = false) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             if (dataArray.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm">
-                    <i class="fa-solid fa-receipt text-3xl mb-2 opacity-50 block"></i>Belum ada catatan</div>`;
+                container.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-receipt text-3xl mb-2 opacity-50 block"></i>Belum ada catatan</div>`;
                 return;
             }
             dataArray.forEach(t => {
@@ -559,57 +820,7 @@
             });
         }
 
-        function renderRekap() {
-            const monthInputStr = document.getElementById('recap-month').value; 
-            if(!monthInputStr) return;
-            const [year, month] = monthInputStr.split('-');
-            
-            let tIncMonth = 0, tExpMonth = 0;
-            const categoryTotals = {}; 
-
-            transactions.forEach(t => {
-                const d = new Date(t.date);
-                if(d.getFullYear() == year && String(d.getMonth() + 1).padStart(2, '0') == month) {
-                    if(t.type === 'income') tIncMonth += t.amount;
-                    if(t.type === 'expense') {
-                        tExpMonth += t.amount;
-                        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
-                    }
-                }
-            });
-
-            const netBalance = tIncMonth - tExpMonth;
-            document.getElementById('recap-income').innerText = formatIDR(tIncMonth);
-            document.getElementById('recap-expense').innerText = formatIDR(tExpMonth);
-            const balanceEl = document.getElementById('recap-balance');
-            balanceEl.innerText = formatIDR(netBalance);
-            balanceEl.className = `text-3xl font-bold ${netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-
-            const catListContainer = document.getElementById('recap-category-list');
-            catListContainer.innerHTML = '';
-            if(tExpMonth === 0) {
-                catListContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">Mantap! Tidak ada pengeluaran bulan ini.</div>`;
-            } else {
-                Object.keys(categoryTotals).sort((a,b) => categoryTotals[b] - categoryTotals[a]).forEach(cat => {
-                    const amount = categoryTotals[cat];
-                    const percentage = Math.round((amount / tExpMonth) * 100);
-                    const catInfo = getCategoryData('expense', cat);
-                    catListContainer.innerHTML += `
-                        <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-                            <div class="absolute left-0 top-0 bottom-0 ${catInfo.bg} opacity-30" style="width: ${percentage}%"></div>
-                            <div class="relative z-10 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-slate-100 ${catInfo.color}"><i class="fa-solid ${catInfo.icon}"></i></div>
-                                    <div><p class="font-bold text-slate-800 text-sm">${cat}</p><p class="text-[11px] text-slate-400">${percentage}% dari pengeluaran</p></div>
-                                </div>
-                                <p class="font-bold text-slate-800 text-sm">${formatIDR(amount)}</p>
-                            </div>
-                        </div>`;
-                });
-            }
-        }
-
-        function renderChart() {
+        function renderHomeChart() {
             const ctx = document.getElementById('cashflowChart');
             const emptyMsg = document.getElementById('empty-chart-msg');
             const currentMonth = new Date().getMonth();
@@ -618,7 +829,7 @@
             const currentMonthData = transactions.filter(t => new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear);
 
             if (currentMonthData.length === 0) {
-                if (chartInstance) chartInstance.destroy();
+                if (homeChartInstance) homeChartInstance.destroy();
                 emptyMsg.classList.remove('hidden');
                 return;
             }
@@ -627,30 +838,29 @@
             let totalPemasukan = 0, totalPengeluaran = 0;
             currentMonthData.forEach(t => { t.type === 'income' ? totalPemasukan += t.amount : totalPengeluaran += t.amount; });
 
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
+            if (homeChartInstance) homeChartInstance.destroy();
+            homeChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Pemasukan', 'Pengeluaran'],
                     datasets: [{
                         data: [totalPemasukan, totalPengeluaran],
                         backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(244, 63, 94, 0.8)'],
-                        borderColor: ['rgb(16, 185, 129)', 'rgb(244, 63, 94)'],
-                        borderWidth: 1, borderRadius: 6, barThickness: 40
+                        borderRadius: 6, barThickness: 40
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return formatIDR(c.parsed.y); } } } },
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => formatIDR(c.parsed.y) } } },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#e2e8f0' }, ticks: { callback: function(v) { if (v >= 1000000) return (v / 1000000) + 'Jt'; if (v >= 1000) return (v / 1000) + 'Rb'; return v; }, font: { size: 10 } } },
+                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#e2e8f0' }, ticks: { callback: v => (v >= 1000000 ? (v/1000000)+'Jt' : v >= 1000 ? (v/1000)+'Rb' : v), font: { size: 10 } } },
                         x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
                     }
                 }
             });
         }
 
-        // --- SUBMIT TRANSAKSI ---
+        // Aksi Submit & Hapus
         document.getElementById('form-add').addEventListener('submit', function(e) {
             e.preventDefault();
             const rawAmountString = document.getElementById('input-amount').value.replace(/\D/g, '');
@@ -659,9 +869,7 @@
             if (!finalAmount || isNaN(finalAmount)) { alert("Nominal tidak valid!"); return; }
 
             transactions.push({
-                id: Date.now(),
-                type: modalType,
-                amount: finalAmount, 
+                id: Date.now(), type: modalType, amount: finalAmount, 
                 category: document.getElementById('input-category').value,
                 date: document.getElementById('input-date').value,
                 description: document.getElementById('input-desc').value
@@ -687,8 +895,6 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            const now = new Date();
-            document.getElementById('recap-month').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             document.getElementById('transaction-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
             checkUserName();
             loadLocalData();
@@ -696,3 +902,4 @@
     </script>
 </body>
 </html>
+
