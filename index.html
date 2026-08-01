@@ -5,73 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UangKu - Pemantau Keuangan Pro</title>
     
-    <!-- Script Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Konfigurasi Tailwind Khusus untuk Kestabilan Glassmorphism -->
-    <style type="text/tailwindcss">
-        @layer components {
-            .glass-card {
-                @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl;
-            }
-            .glass-panel {
-                @apply bg-slate-900/80 backdrop-blur-xl border-t border-white/10;
-            }
-            .glass-input {
-                @apply w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all;
-            }
-            .glass-btn {
-                @apply bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all shadow-sm;
-            }
-            .page-content {
-                height: calc(100vh - 80px);
-                @apply overflow-y-auto pb-6 scroll-smooth;
-            }
-            /* Hilangkan scrollbar tapi tetap bisa di-scroll */
-            .page-content::-webkit-scrollbar { display: none; }
-            .no-scrollbar::-webkit-scrollbar { display: none; }
-        }
-    </style>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
-        body {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-            overflow-y: hidden;
-            background-color: #0f172a; /* Warna dasar gelap */
-            color: #f8fafc;
+        :root {
+            --bg-color: #0f172a; /* Slate 900 */
         }
-        * { -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+            overflow-y: hidden; background-color: var(--bg-color); color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif;
+        }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
-        /* Background Blobs yang Aman & Ringan */
-        .bg-blobs { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: #0f172a; }
-        .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.5; animation: float 20s infinite alternate ease-in-out; }
-        .blob-1 { background: #4f46e5; width: 300px; height: 300px; top: -10%; left: -10%; }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+        }
+        .glass-panel {
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input {
+            width: 100%; padding: 0.75rem 1rem;
+            background-color: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 0.75rem; color: white;
+            outline: none; transition: all 0.3s ease;
+        }
+        .glass-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3); background-color: rgba(0,0,0,0.4); }
+        .glass-input::placeholder { color: #94a3b8; }
+        
+        .glass-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white; border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s; border-radius: 0.5rem;
+        }
+        .glass-btn:active { background-color: rgba(255, 255, 255, 0.2); transform: scale(0.95); }
+
+        .bg-blobs { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: var(--bg-color); }
+        .blob { position: absolute; border-radius: 50%; filter: blur(75px); opacity: 0.45; animation: float 20s infinite alternate ease-in-out; }
+        .blob-1 { background: #4f46e5; width: 320px; height: 320px; top: -10%; left: -10%; }
         .blob-2 { background: #0ea5e9; width: 350px; height: 350px; top: 40%; right: -20%; animation-delay: -5s; }
         .blob-3 { background: #e11d48; width: 300px; height: 300px; bottom: -10%; left: 10%; animation-delay: -10s; }
-        @keyframes float { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(30px,30px) scale(1.1); } }
+        @keyframes float { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(30px,40px) scale(1.1); } }
 
-        .page { display: none; animation: fadeIn 0.3s ease-out; }
+        .page-content {
+            height: calc(100vh - 75px); overflow-y: auto; overflow-x: hidden; padding-bottom: 2rem; scroll-behavior: smooth;
+        }
+        .page-content::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar { display: none; }
+        .page { display: none; animation: fadeIn 0.35s ease-out forwards; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Warna dropdown option untuk HP */
         select option { background-color: #1e293b; color: white; }
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.7; }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.7; width: 16px; height: 16px; cursor: pointer; }
         
-        /* Kalender Button Animation */
-        .cal-btn { transition: all 0.2s; }
-        .cal-btn:active { transform: scale(0.9); }
+        .sticky-header-fix {
+            position: sticky; top: 0; z-index: 30;
+            background-color: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.75rem; margin-left: -1rem; margin-right: -1rem; padding-left: 1rem; padding-right: 1rem;
+        }
+
+        .modal-scroll-content { max-height: 85vh; overflow-y: auto; }
+        .modal-scroll-content::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="font-sans h-screen w-screen flex flex-col relative overflow-hidden">
 
-    <!-- Latar Belakang Animasi -->
     <div class="bg-blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -96,12 +106,12 @@
     </div>
 
     <!-- ==============================================
-         HALAMAN 1: BERANDA (DASHBOARD)
+         HALAMAN 1: BERANDA
          ============================================== -->
-    <div id="page-home" class="page active page-content p-4">
-        <header class="flex items-center justify-between mb-6 pt-2">
+    <div id="page-home" class="page active page-content px-4 pt-4">
+        <header class="flex items-center justify-between mb-6">
             <div>
-                <p class="text-xs text-cyan-400 font-bold uppercase tracking-widest mb-1">Selamat Datang</p>
+                <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mb-0.5">Selamat Datang</p>
                 <h1 class="text-2xl font-bold text-white truncate max-w-[200px]" id="display-username">Halo!</h1>
             </div>
             <button onclick="editName()" class="w-10 h-10 glass-card rounded-full flex items-center justify-center text-white hover:bg-white/20 transition">
@@ -109,37 +119,32 @@
             </button>
         </header>
 
-        <!-- Kartu Saldo Global -->
         <div class="glass-card p-6 mb-8 relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500 opacity-20 rounded-full blur-3xl"></div>
             <p class="text-slate-300 text-sm mb-1">Total Kekayaan Bersih</p>
             <h2 id="home-total-balance" class="text-4xl font-bold text-white mb-2">Rp 0</h2>
-            <p class="text-xs text-slate-400 mb-6"><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Tersinkronisasi Offline</p>
+            <p class="text-[10px] text-emerald-400 mb-6 bg-emerald-500/10 inline-block px-2 py-1 rounded-md border border-emerald-500/20"><i class="fa-solid fa-shield-halved mr-1"></i> Tersinkronisasi Offline</p>
             
             <div class="flex gap-3">
-                <div class="flex-1 bg-white/5 border border-white/10 p-3 rounded-xl">
-                    <p class="text-slate-400 text-[10px] uppercase font-bold mb-1"><i class="fa-solid fa-arrow-down text-emerald-400"></i> Masuk (Bulan ini)</p>
-                    <p id="home-total-income" class="font-bold text-emerald-400 text-sm">Rp 0</p>
+                <div class="flex-1 bg-white/5 border border-white/5 p-3 rounded-xl min-w-0">
+                    <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate"><i class="fa-solid fa-arrow-down text-emerald-400"></i> Masuk (Bulan ini)</p>
+                    <p id="home-total-income" class="font-bold text-emerald-400 text-sm truncate">Rp 0</p>
                 </div>
-                <div class="flex-1 bg-white/5 border border-white/10 p-3 rounded-xl">
-                    <p class="text-slate-400 text-[10px] uppercase font-bold mb-1"><i class="fa-solid fa-arrow-up text-rose-400"></i> Keluar (Bulan ini)</p>
-                    <p id="home-total-expense" class="font-bold text-rose-400 text-sm">Rp 0</p>
+                <div class="flex-1 bg-white/5 border border-white/5 p-3 rounded-xl min-w-0">
+                    <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate"><i class="fa-solid fa-arrow-up text-rose-400"></i> Keluar (Bulan ini)</p>
+                    <p id="home-total-expense" class="font-bold text-rose-400 text-sm truncate">Rp 0</p>
                 </div>
             </div>
         </div>
 
-        <!-- Daftar Rekening / E-Wallet -->
         <div class="mb-8">
             <div class="flex justify-between items-end mb-3">
                 <h3 class="font-bold text-white text-base">Dompet & Rekening</h3>
-                <button onclick="openDynamicModal('account')" class="text-cyan-400 text-xs font-bold bg-cyan-500/10 px-2 py-1 rounded-lg"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+                <button onclick="openDynamicModal('account')" class="text-cyan-400 text-[10px] font-bold bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
             </div>
-            <div id="account-scroll-list" class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar">
-                <!-- Akun di-render via JS -->
-            </div>
+            <div id="account-scroll-list" class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar"></div>
         </div>
 
-        <!-- Transaksi Terbaru -->
         <div>
             <div class="flex justify-between items-end mb-3">
                 <h3 class="font-bold text-white text-base">Transaksi Terbaru</h3>
@@ -152,166 +157,181 @@
     <!-- ==============================================
          HALAMAN 2: PERENCANAAN
          ============================================== -->
-    <div id="page-plan" class="page page-content p-4">
-        <header class="mb-6 pt-2 sticky top-0 z-20 pb-2 backdrop-blur-md">
+    <div id="page-plan" class="page page-content px-4">
+        <header class="pt-4 sticky-header-fix mb-6">
             <h1 class="text-2xl font-bold text-white mb-4">Perencanaan</h1>
             <div class="bg-black/30 p-1 rounded-xl flex items-center border border-white/10">
-                <button onclick="switchPlanTab('budget')" id="ptab-budget" class="plan-tab-btn flex-1 py-2 text-xs font-bold rounded-lg text-center bg-white/20 text-white shadow-sm transition-all">Anggaran</button>
-                <button onclick="switchPlanTab('bills')" id="ptab-bills" class="plan-tab-btn flex-1 py-2 text-xs font-bold rounded-lg text-center text-slate-400 transition-all">Tagihan</button>
-                <button onclick="switchPlanTab('debts')" id="ptab-debts" class="plan-tab-btn flex-1 py-2 text-xs font-bold rounded-lg text-center text-slate-400 transition-all">Hutang</button>
-                <button onclick="switchPlanTab('goals')" id="ptab-goals" class="plan-tab-btn flex-1 py-2 text-xs font-bold rounded-lg text-center text-slate-400 transition-all">Target</button>
+                <button onclick="switchPlanTab('budget')" id="ptab-budget" class="plan-tab-btn flex-1 py-2 text-[11px] font-bold rounded-lg text-center bg-white/20 text-white shadow-sm transition-all">Anggaran</button>
+                <button onclick="switchPlanTab('bills')" id="ptab-bills" class="plan-tab-btn flex-1 py-2 text-[11px] font-bold rounded-lg text-center text-slate-400 transition-all">Tagihan</button>
+                <button onclick="switchPlanTab('debts')" id="ptab-debts" class="plan-tab-btn flex-1 py-2 text-[11px] font-bold rounded-lg text-center text-slate-400 transition-all">Hutang</button>
+                <button onclick="switchPlanTab('goals')" id="ptab-goals" class="plan-tab-btn flex-1 py-2 text-[11px] font-bold rounded-lg text-center text-slate-400 transition-all">Target</button>
             </div>
         </header>
 
         <div id="plan-view-budget" class="plan-view block space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-sm text-slate-300">Batas Pengeluaran Bulan Ini</p>
-                <button onclick="openDynamicModal('budget')" class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400"><i class="fa-solid fa-plus"></i> Buat</button>
+                <button onclick="openDynamicModal('budget')" class="glass-btn px-3 py-1.5 text-[11px] font-bold text-cyan-400"><i class="fa-solid fa-plus mr-1"></i> Buat</button>
             </div>
             <div id="budget-list" class="space-y-3"></div>
         </div>
         <div id="plan-view-bills" class="plan-view hidden space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-sm text-slate-300">Tagihan Rutin Belum Dibayar</p>
-                <button onclick="openDynamicModal('bill')" class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold text-rose-400"><i class="fa-solid fa-plus"></i> Tambah</button>
+                <button onclick="openDynamicModal('bill')" class="glass-btn px-3 py-1.5 text-[11px] font-bold text-rose-400"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
             </div>
             <div id="bill-list" class="space-y-3"></div>
         </div>
         <div id="plan-view-debts" class="plan-view hidden space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-sm text-slate-300">Catatan Hutang & Piutang</p>
-                <button onclick="openDynamicModal('debt')" class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold text-amber-400"><i class="fa-solid fa-plus"></i> Catat</button>
+                <button onclick="openDynamicModal('debt')" class="glass-btn px-3 py-1.5 text-[11px] font-bold text-amber-400"><i class="fa-solid fa-plus mr-1"></i> Catat</button>
             </div>
             <div id="debt-list" class="space-y-3"></div>
         </div>
         <div id="plan-view-goals" class="plan-view hidden space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-sm text-slate-300">Progres Impian Keuanganmu</p>
-                <button onclick="openDynamicModal('goal')" class="glass-btn px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-400"><i class="fa-solid fa-plus"></i> Target</button>
+                <button onclick="openDynamicModal('goal')" class="glass-btn px-3 py-1.5 text-[11px] font-bold text-emerald-400"><i class="fa-solid fa-plus mr-1"></i> Target</button>
             </div>
             <div id="goal-list" class="space-y-3"></div>
         </div>
     </div>
 
     <!-- ==============================================
-         HALAMAN 3: REKAP & GRAFIK (TERMASUK KALENDER)
+         HALAMAN 3: REKAP & GRAFIK
          ============================================== -->
-    <div id="page-recap" class="page page-content p-4">
-        <header class="mb-4 pt-2 sticky top-0 z-20 pb-2 backdrop-blur-md">
+    <div id="page-recap" class="page page-content px-4">
+        <header class="pt-4 sticky-header-fix mb-4">
             <div class="flex justify-between items-center mb-4">
                 <h1 id="recap-header-title" class="text-2xl font-bold text-white">Rekap Bulanan</h1>
                 <div class="flex gap-2">
-                    <button onclick="downloadRekapCSV()" class="glass-btn text-cyan-400 px-3 py-1.5 rounded-lg text-xs font-bold">
+                    <button onclick="downloadRekapCSV()" class="glass-btn text-cyan-400 px-3 py-1.5 text-xs font-bold flex items-center gap-1">
                         <i class="fa-solid fa-download"></i> CSV
                     </button>
-                    <button onclick="resetSemuaData()" class="glass-btn text-rose-400 px-3 py-1.5 rounded-lg text-xs font-bold">
+                    <button onclick="resetSemuaData()" class="glass-btn text-rose-400 px-3 py-1.5 text-xs font-bold">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </div>
 
             <div class="bg-black/30 p-1 rounded-xl flex items-center mb-3 border border-white/10">
-                <button onclick="changeRecapTab('daily')" id="rtab-daily" class="recap-tab-btn flex-1 py-1.5 text-xs font-bold rounded-lg text-center text-slate-400 transition-all">Harian</button>
-                <button onclick="changeRecapTab('weekly')" id="rtab-weekly" class="recap-tab-btn flex-1 py-1.5 text-xs font-bold rounded-lg text-center text-slate-400 transition-all">Mingguan</button>
-                <button onclick="changeRecapTab('monthly')" id="rtab-monthly" class="recap-tab-btn flex-1 py-1.5 text-xs font-bold rounded-lg text-center bg-white/20 text-white shadow-sm transition-all">Bulanan</button>
+                <button onclick="changeRecapTab('daily')" id="rtab-daily" class="recap-tab-btn flex-1 py-1.5 text-[11px] font-bold rounded-lg text-center text-slate-400 transition-all">Harian</button>
+                <button onclick="changeRecapTab('weekly')" id="rtab-weekly" class="recap-tab-btn flex-1 py-1.5 text-[11px] font-bold rounded-lg text-center text-slate-400 transition-all">Mingguan</button>
+                <button onclick="changeRecapTab('monthly')" id="rtab-monthly" class="recap-tab-btn flex-1 py-1.5 text-[11px] font-bold rounded-lg text-center bg-white/20 text-white shadow-sm transition-all">Bulanan</button>
             </div>
 
-            <div class="glass-card p-2 flex justify-between items-center mb-2">
-                <button onclick="shiftRecapPeriod(-1)" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-lg"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="glass-card p-2 flex justify-between items-center">
+                <button onclick="shiftRecapPeriod(-1)" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-lg active:scale-90 transition-transform"><i class="fa-solid fa-chevron-left"></i></button>
                 <p id="recap-period-label" class="font-bold text-white text-sm text-center flex-1">Mei 2026</p>
-                <button onclick="shiftRecapPeriod(1)" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-lg"><i class="fa-solid fa-chevron-right"></i></button>
+                <button onclick="shiftRecapPeriod(1)" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-lg active:scale-90 transition-transform"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
         </header>
 
-        <!-- Kartu Saldo (Global Rekap) -->
         <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="col-span-2 glass-card p-5 text-center relative overflow-hidden">
-                <p id="recap-balance-label" class="text-xs text-slate-300 font-bold mb-1 uppercase tracking-wider">Arus Kas Bersih</p>
-                <p id="recap-balance" class="text-3xl font-bold text-white">Rp 0</p>
+            <div class="col-span-2 glass-card p-4 text-center">
+                <p id="recap-balance-label" class="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-widest">Arus Kas Bersih</p>
+                <p id="recap-balance" class="text-3xl font-bold text-white truncate">Rp 0</p>
             </div>
-            <div class="glass-card p-3 border-t-2 border-t-emerald-500/80">
-                <p class="text-[11px] text-emerald-400 font-bold mb-1"><i class="fa-solid fa-arrow-down mr-1"></i>Pemasukan</p>
-                <p id="recap-income" class="text-base font-bold text-white">Rp 0</p>
+            <div class="glass-card p-3 border-t-2 border-t-emerald-500 min-w-0">
+                <p class="text-[10px] text-emerald-400 font-bold mb-1"><i class="fa-solid fa-arrow-down mr-1"></i>Pemasukan</p>
+                <p id="recap-income" class="text-sm font-bold text-white truncate">Rp 0</p>
             </div>
-            <div class="glass-card p-3 border-t-2 border-t-rose-500/80">
-                <p class="text-[11px] text-rose-400 font-bold mb-1"><i class="fa-solid fa-arrow-up mr-1"></i>Pengeluaran</p>
-                <p id="recap-expense" class="text-base font-bold text-white">Rp 0</p>
+            <div class="glass-card p-3 border-t-2 border-t-rose-500 min-w-0">
+                <p class="text-[10px] text-rose-400 font-bold mb-1"><i class="fa-solid fa-arrow-up mr-1"></i>Pengeluaran</p>
+                <p id="recap-expense" class="text-sm font-bold text-white truncate">Rp 0</p>
             </div>
         </div>
 
-        <!-- Kontainer Khusus Mingguan (Grafik + Kategori) -->
-        <div id="recap-weekly-chart-container" class="hidden glass-card p-4 mb-6">
-            <h3 class="font-bold text-white text-sm mb-3">Tren Pengeluaran</h3>
-            <div class="relative h-40 w-full"><canvas id="weeklyChart"></canvas></div>
-        </div>
-        <div id="recap-category-container" class="hidden mb-6">
-            <h3 class="font-bold text-white mb-3 text-sm ml-1">Rincian Kategori</h3>
-            <div id="recap-category-list" class="space-y-3"></div>
+        <div id="recap-weekly-wrapper" class="hidden mb-6">
+            <div class="glass-card p-4 mb-3">
+                <h3 class="font-bold text-white text-sm mb-2">Tren Pengeluaran</h3>
+                <div class="relative h-32 w-full mb-1"><canvas id="weeklyChart"></canvas></div>
+                <div id="recap-weekly-days" class="grid grid-cols-7 gap-1 mt-2 pt-3 border-t border-white/10"></div>
+            </div>
         </div>
 
-        <!-- Kontainer Khusus Bulanan (Visual Kalender) -->
         <div id="recap-calendar-container" class="hidden glass-card p-4 mb-6">
             <h3 class="font-bold text-white text-sm mb-3 text-center">Kalender Transaksi</h3>
-            <div id="calendar-grid">
-                <!-- Diisi via JS -->
-            </div>
+            <div id="calendar-grid"></div>
         </div>
 
-        <!-- Kontainer Daftar Transaksi Harian / Tanggal Terpilih -->
-        <div id="recap-daily-tx-wrapper" class="hidden mb-6">
+        <div id="recap-data-wrapper">
             <h3 id="recap-list-title" class="font-bold text-white mb-3 text-sm ml-1">Histori Transaksi</h3>
             <div id="recap-list-container" class="space-y-3"></div>
         </div>
     </div>
 
     <!-- ==============================================
-         MODAL UTAMA & DINAMIS (Tidak Ada Perubahan UI Signifikan)
+         MODAL UTAMA (TAMBAH TRANSAKSI)
+         Kategori Kiri, Tanggal Kanan (Kolom Tanggal Diperkecil Aman)
          ============================================== -->
     <div id="transaction-modal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden flex-col justify-end backdrop-blur-sm transition-opacity">
-        <div id="ocr-loading" class="hidden absolute inset-0 bg-slate-900/95 backdrop-blur-md z-[70] flex-col justify-center items-center rounded-t-3xl">
+        <div id="ocr-loading" class="hidden absolute inset-0 bg-slate-900/95 backdrop-blur-xl z-[70] flex-col justify-center items-center rounded-t-3xl">
             <i class="fa-solid fa-expand fa-spin text-5xl text-cyan-400 mb-4"></i>
             <h3 class="text-lg font-bold text-white">Membaca Struk (AI)...</h3>
-            <p class="text-sm text-slate-400 mt-2 text-center px-8">Mohon tunggu, AI sedang memproses gambar.</p>
         </div>
-        <div class="glass-panel w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative" id="tx-modal-content">
+        <div class="glass-panel w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative modal-scroll-content" id="tx-modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-white">Catat Transaksi</h2>
                 <button onclick="closeTxModal()" class="w-8 h-8 glass-btn rounded-full flex justify-center items-center text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            
             <form id="form-tx" class="space-y-4">
-                <div class="flex p-1 bg-black/30 rounded-xl border border-white/10">
+                <div class="flex p-1 bg-black/40 rounded-xl border border-white/10">
                     <button type="button" id="modal-btn-expense" onclick="setTxType('expense')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all">Pengeluaran</button>
                     <button type="button" id="modal-btn-income" onclick="setTxType('income')" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-400 border border-transparent transition-all">Pemasukan</button>
                 </div>
+                
                 <div class="relative pt-1">
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-xs font-bold text-slate-400 ml-1">Nominal (Rp)</label>
-                        <button type="button" onclick="document.getElementById('input-scan').click()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"><i class="fa-solid fa-camera"></i> Scan</button>
+                        <button type="button" onclick="document.getElementById('input-scan').click()" class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1"><i class="fa-solid fa-camera"></i> Scan</button>
                         <input type="file" id="input-scan" accept="image/*" capture="environment" class="hidden" onchange="processReceipt(this)">
                     </div>
                     <span class="absolute left-4 top-[2.4rem] text-slate-400 font-bold">Rp</span>
                     <input type="text" inputmode="numeric" id="tx-amount" required class="glass-input pl-12 pr-4 font-bold text-2xl" placeholder="0">
                 </div>
-                <div><label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Sumber Dana / Dompet</label><select id="tx-account" required class="glass-input text-sm appearance-none"></select></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Kategori</label><select id="tx-category" required class="glass-input text-sm appearance-none"></select></div>
-                    <div><label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Tanggal</label><input type="date" id="tx-date" required class="glass-input text-sm"></div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Sumber Dana / Dompet</label>
+                    <select id="tx-account" required class="glass-input text-sm appearance-none"></select>
                 </div>
-                <div><label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Keterangan</label><input type="text" id="tx-desc" required autocomplete="off" class="glass-input text-sm" placeholder="Makan siang, Gaji"></div>
+                
+                <!-- TATA LETAK KATEGORI (KIRI) & TANGGAL (KANAN) DENGAN UKURAN PAS -->
+                <div class="flex gap-2">
+                    <div class="flex-[1.2] min-w-0">
+                        <label class="block text-xs font-bold text-slate-400 mb-1 ml-1 truncate">Kategori</label>
+                        <select id="tx-category" required class="glass-input text-sm appearance-none px-3"></select>
+                    </div>
+                    <div class="flex-[0.9] min-w-0">
+                        <label class="block text-xs font-bold text-slate-400 mb-1 ml-1 truncate">Tanggal</label>
+                        <input type="date" id="tx-date" required class="glass-input text-sm !px-1.5 text-center">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 ml-1">Keterangan</label>
+                    <input type="text" id="tx-desc" required autocomplete="off" class="glass-input text-sm" placeholder="Makan siang, Gaji">
+                </div>
+                
                 <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl py-4 font-bold mt-2 shadow-lg border border-blue-400/50 active:scale-95 transition-transform">Simpan Transaksi</button>
             </form>
         </div>
     </div>
 
+    <!-- ==============================================
+         MODAL DINAMIS
+         ============================================== -->
     <div id="dynamic-modal" class="fixed inset-0 bg-slate-900/80 z-[65] hidden flex-col justify-end backdrop-blur-sm transition-opacity">
-        <div class="glass-panel w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative" id="dynamic-modal-content">
+        <div class="glass-panel w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative modal-scroll-content" id="dynamic-modal-content">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="dyn-modal-title" class="text-xl font-bold text-white">Judul</h2>
                 <button onclick="closeDynamicModal()" class="w-8 h-8 glass-btn rounded-full flex justify-center items-center text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-dynamic" class="space-y-4">
                 <div id="dyn-modal-fields" class="space-y-3"></div>
-                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl py-4 font-bold mt-4 shadow-lg border border-emerald-400/50 active:scale-95 transition-transform">Simpan Data</button>
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl py-4 font-bold mt-2 shadow-lg border border-emerald-400/50 active:scale-95 transition-transform">Simpan Data</button>
             </form>
         </div>
     </div>
@@ -332,7 +352,7 @@
         <button onclick="switchTab('page-recap', 'nav-recap')" id="nav-recap" class="tab-btn flex flex-col items-center justify-center w-12 text-slate-400">
             <i class="fa-solid fa-chart-line text-xl mb-1 transition-transform duration-200"></i><span class="text-[10px] font-bold">Rekap</span>
         </button>
-        <button onclick="alert('Fitur Sinkronisasi Cloud/Akun dapat dikembangkan di sini.')" class="tab-btn flex flex-col items-center justify-center w-12 text-slate-400">
+        <button onclick="alert('Sinkronisasi Cloud / Pengaturan dapat dikembangkan di sini.')" class="tab-btn flex flex-col items-center justify-center w-12 text-slate-400">
             <i class="fa-solid fa-cloud-arrow-up text-xl mb-1 transition-transform duration-200"></i><span class="text-[10px] font-bold">Cloud</span>
         </button>
         <style> .tab-btn.active { color: #22d3ee; } .tab-btn.active i { transform: translateY(-3px) scale(1.1); text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); } </style>
@@ -340,15 +360,10 @@
 
     <!-- LOGIKA APLIKASI UTAMA (JavaScript) -->
     <script>
-        // ==========================================
-        // 1. STATE & STRUKTUR DATA
-        // ==========================================
         let appData = {
             username: '',
             accounts: [
-                { id: 1, name: 'Dompet Tunai', type: 'cash', balance: 0, color: 'from-emerald-400 to-teal-500' },
-                { id: 2, name: 'Rekening Bank', type: 'bank', balance: 0, color: 'from-blue-500 to-indigo-600' },
-                { id: 3, name: 'E-Wallet', type: 'ewallet', balance: 0, color: 'from-purple-500 to-pink-500' }
+                { id: 1, name: 'Dompet Tunai', type: 'cash', balance: 0, color: 'from-emerald-400 to-teal-500' }
             ],
             transactions: [], budgets: [], bills: [], debts: [], goals: []
         };
@@ -360,7 +375,6 @@
                 { id: 'Gaji', icon: 'fa-money-bill-wave', color: 'text-emerald-400', bg: 'bg-emerald-400/20' },
                 { id: 'Bonus', icon: 'fa-gift', color: 'text-teal-400', bg: 'bg-teal-400/20' },
                 { id: 'Investasi', icon: 'fa-arrow-trend-up', color: 'text-cyan-400', bg: 'bg-cyan-400/20' },
-                { id: 'Pencairan', icon: 'fa-piggy-bank', color: 'text-blue-400', bg: 'bg-blue-400/20'},
                 { id: 'Lainnya', icon: 'fa-box-open', color: 'text-slate-300', bg: 'bg-white/10' }
             ],
             expense: [
@@ -371,7 +385,7 @@
                 { id: 'Kesehatan', icon: 'fa-notes-medical', color: 'text-rose-500', bg: 'bg-rose-500/20' },
                 { id: 'Hiburan', icon: 'fa-gamepad', color: 'text-purple-400', bg: 'bg-purple-400/20' },
                 { id: 'Bayar Hutang', icon: 'fa-handshake', color: 'text-amber-400', bg: 'bg-amber-400/20' },
-                { id: 'Nabung/Target', icon: 'fa-bullseye', color: 'text-emerald-400', bg: 'bg-emerald-400/20' },
+                { id: 'Nabung', icon: 'fa-bullseye', color: 'text-emerald-400', bg: 'bg-emerald-400/20' },
                 { id: 'Lainnya', icon: 'fa-box-open', color: 'text-slate-300', bg: 'bg-white/10' }
             ]
         };
@@ -380,7 +394,10 @@
         let dynModalContext = ''; 
         let activeRecapMode = 'monthly';
         let currentRecapDate = new Date();
-        let selectedCalendarDate = null; // State baru untuk menyimpan tanggal yang di-klik di kalender
+        
+        let selectedCalendarDate = null; 
+        let selectedWeeklyDayIndex = null; 
+
         let currentRecapFilteredData = [];
         let chartInstance = null;
         let currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -389,23 +406,24 @@
         const toDateString = (d) => { const z = n => ('0' + n).slice(-2); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
         const getCatData = (type, id) => CATEGORIES[type].find(c => c.id === id) || { icon: 'fa-circle', color: 'text-slate-400', bg: 'bg-white/10' };
 
-        // ==========================================
-        // 2. PENYIMPANAN
-        // ==========================================
         function loadData() {
-            const saved = localStorage.getItem('uangku_pro_v3');
+            const saved = localStorage.getItem('uangku_pro_v7');
             if (saved) appData = JSON.parse(saved);
             else {
-                // Fallback migrasi jika ada data v2
-                const old = localStorage.getItem('uangku_pro_v2');
-                if(old) appData = JSON.parse(old);
+                const old = localStorage.getItem('uangku_pro_v6') || localStorage.getItem('uangku_pro_v5');
+                if(old) { 
+                    appData = JSON.parse(old); 
+                    if(!appData.accounts || appData.accounts.length === 0) {
+                        appData.accounts = [{ id: 1, name: 'Dompet Tunai', type: 'cash', balance: 0, color: 'from-emerald-400 to-teal-500' }];
+                    }
+                }
             }
             syncAccountBalances(); checkUser();
         }
 
         function saveData() {
             syncAccountBalances(); 
-            localStorage.setItem('uangku_pro_v3', JSON.stringify(appData));
+            localStorage.setItem('uangku_pro_v7', JSON.stringify(appData));
             updateAllUI();
         }
 
@@ -418,7 +436,7 @@
         }
 
         window.resetSemuaData = function() {
-            if(confirm("PERINGATAN: Hapus SEMUA data dan mulai dari nol?")) { localStorage.clear(); location.reload(); }
+            if(confirm("Hapus SEMUA data dan kembali ke pengaturan awal (1 Dompet Tunai)?")) { localStorage.clear(); location.reload(); }
         }
 
         function checkUser() {
@@ -442,9 +460,6 @@
             document.getElementById('welcome-modal').style.display = 'flex';
         };
 
-        // ==========================================
-        // 3. UI RENDERER (DASHBOARD & DOMPET)
-        // ==========================================
         function updateAllUI() {
             renderDashboard(); renderPlanTabs();
             if(document.getElementById('page-recap').classList.contains('active')) renderRecap();
@@ -465,9 +480,9 @@
             appData.accounts.forEach(acc => {
                 const icon = acc.type === 'cash' ? 'fa-wallet' : acc.type === 'bank' ? 'fa-building-columns' : 'fa-mobile-screen';
                 accContainer.innerHTML += `
-                    <div class="min-w-[150px] p-4 rounded-2xl bg-gradient-to-br ${acc.color} text-white shadow-lg shrink-0 snap-center relative overflow-hidden border border-white/10">
-                        <div class="absolute right-[-10px] top-[-10px] opacity-20"><i class="fa-solid ${icon} text-6xl"></i></div>
-                        <p class="text-[11px] font-medium opacity-80 mb-1 relative z-10 truncate">${acc.name}</p>
+                    <div class="min-w-[140px] p-4 rounded-2xl bg-gradient-to-br ${acc.color} text-white shadow-lg shrink-0 snap-center relative overflow-hidden border border-white/10">
+                        <div class="absolute right-[-5px] top-[-5px] opacity-20"><i class="fa-solid ${icon} text-6xl"></i></div>
+                        <p class="text-[10px] font-medium opacity-80 mb-1 relative z-10 truncate">${acc.name}</p>
                         <p class="font-bold text-base relative z-10 truncate">${formatIDR(acc.balance)}</p>
                     </div>`;
             });
@@ -476,55 +491,47 @@
             renderTransactionList(recent, 'home-recent-list', false);
         }
 
-        // ==========================================
-        // STRUKTUR FLEXBOX KETAT UNTUK LIST
-        // (Bug Teks Nabrak Nominal Fixed)
-        // ==========================================
         function renderTransactionList(data, containerId, allowDelete) {
             const container = document.getElementById(containerId); container.innerHTML = '';
             if (data.length === 0) {
-                container.innerHTML = `<div class="text-center py-6 glass-card text-slate-400 text-sm">Belum ada transaksi</div>`;
+                container.innerHTML = `<div class="text-center py-6 glass-card text-slate-400 text-sm border-dashed border-white/20">Belum ada transaksi dicatat</div>`;
                 return;
             }
             data.forEach(t => {
                 const isInc = t.type === 'income'; const catInfo = getCatData(t.type, t.category);
                 const acc = appData.accounts.find(a => a.id == t.accountId)?.name || 'Unknown';
                 const dateFmt = new Date(t.date).toLocaleDateString('id-ID', { day:'numeric', month:'short' });
-                const delBtn = allowDelete ? `<button onclick="deleteTx(${t.id})" class="text-slate-400 hover:text-rose-400 p-2 ml-1"><i class="fa-solid fa-trash"></i></button>` : '';
+                const delBtn = allowDelete ? `<button onclick="deleteTx(${t.id})" class="text-slate-500 hover:text-rose-400 p-2 ml-1 active:scale-90"><i class="fa-solid fa-trash"></i></button>` : '';
 
                 container.innerHTML += `
                     <div class="glass-card p-3 flex items-center gap-3 w-full max-w-full overflow-hidden">
-                        <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${catInfo.bg} ${catInfo.color}">
+                        <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-black/20 ${catInfo.color} border border-white/5">
                             <i class="fa-solid ${catInfo.icon}"></i>
                         </div>
-                        <div class="flex-1 min-w-0"> <!-- min-w-0 membiarkan truncate bekerja -->
-                            <p class="font-bold text-white text-sm truncate block">${t.description}</p>
-                            <p class="text-[10px] text-slate-400 truncate block">${t.category} • ${acc} • ${dateFmt}</p>
+                        <div class="flex-1 min-w-0 pr-1">
+                            <p class="font-bold text-white text-sm truncate block leading-tight">${t.description}</p>
+                            <p class="text-[10px] text-slate-400 truncate block mt-0.5">${t.category} • ${acc} • ${dateFmt}</p>
                         </div>
-                        <div class="flex items-center shrink-0 ml-auto">
-                            <p class="font-bold text-sm ${isInc ? 'text-emerald-400' : 'text-white'} whitespace-nowrap">${isInc?'+':'-'}${formatIDR(t.amount)}</p>
+                        <div class="flex items-center shrink-0 ml-auto gap-1">
+                            <p class="font-bold text-[13px] ${isInc ? 'text-emerald-400' : 'text-white'} whitespace-nowrap">${isInc?'+':'-'}${formatIDR(t.amount)}</p>
                             ${delBtn}
                         </div>
                     </div>`;
             });
         }
 
-        // ==========================================
-        // 4. TAB PERENCANAAN
-        // ==========================================
         window.switchPlanTab = function(tab) {
             ['budget', 'bills', 'debts', 'goals'].forEach(t => {
-                document.getElementById(`ptab-${t}`).className = `plan-tab-btn flex-1 py-1.5 text-xs font-bold rounded-lg text-center transition-all ${t === tab ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400'}`;
+                document.getElementById(`ptab-${t}`).className = `plan-tab-btn flex-1 py-2 text-[11px] font-bold rounded-lg text-center transition-all ${t === tab ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400'}`;
                 document.getElementById(`plan-view-${t}`).style.display = t === tab ? 'block' : 'none';
             });
             renderPlanTabs();
         }
 
         function renderPlanTabs() {
-            // Budget
             const bCont = document.getElementById('budget-list'); bCont.innerHTML = '';
             const activeBudgets = appData.budgets.filter(b => b.monthStr === currentMonthStr);
-            if(activeBudgets.length === 0) bCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card">Belum ada anggaran.</p>`;
+            if(activeBudgets.length === 0) bCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card border-dashed">Belum ada anggaran.</p>`;
             else {
                 activeBudgets.forEach(b => {
                     const spent = appData.transactions.reduce((sum, t) => (t.type === 'expense' && t.category === b.category && t.date.startsWith(currentMonthStr)) ? sum + t.amount : sum, 0);
@@ -534,8 +541,8 @@
                     bCont.innerHTML += `
                         <div class="glass-card p-4 relative overflow-hidden w-full">
                             <div class="flex justify-between items-center mb-2 gap-2">
-                                <div class="flex items-center gap-2 flex-1 min-w-0"><i class="fa-solid ${catInfo.icon} ${catInfo.color} w-4 shrink-0"></i> <span class="text-sm font-bold text-white truncate block">${b.category}</span></div>
-                                <span class="text-xs text-slate-300 font-bold shrink-0">${formatIDR(spent)} / ${formatIDR(b.limit)}</span>
+                                <div class="flex items-center gap-2 flex-1 min-w-0"><i class="fa-solid ${catInfo.icon} ${catInfo.color} w-4 shrink-0 text-center"></i> <span class="text-sm font-bold text-white truncate block">${b.category}</span></div>
+                                <span class="text-[10px] text-slate-300 font-bold shrink-0">${formatIDR(spent)} / ${formatIDR(b.limit)}</span>
                             </div>
                             <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden border border-white/5">
                                 <div class="${color} h-2 rounded-full shadow-[0_0_8px_currentColor]" style="width: ${pct}%"></div>
@@ -544,35 +551,33 @@
                 });
             }
 
-            // Bills
             const biCont = document.getElementById('bill-list'); biCont.innerHTML = '';
             const activeBills = appData.bills.filter(b => b.monthStr === currentMonthStr);
-            if(activeBills.length === 0) biCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card">Tidak ada tagihan tertunda.</p>`;
+            if(activeBills.length === 0) biCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card border-dashed">Tidak ada tagihan tertunda.</p>`;
             else {
                 activeBills.forEach(b => {
                     biCont.innerHTML += `
-                        <div class="glass-card p-3 flex items-center justify-between border-l-4 ${b.isPaid ? 'border-l-emerald-500 opacity-60' : 'border-l-rose-500'} w-full max-w-full overflow-hidden">
+                        <div class="glass-card p-3 flex items-center justify-between border-l-4 ${b.isPaid ? 'border-l-emerald-500 opacity-50' : 'border-l-rose-500'} w-full max-w-full overflow-hidden">
                             <div class="flex-1 min-w-0 pr-2">
                                 <p class="text-sm font-bold text-white truncate block ${b.isPaid ? 'line-through text-slate-400' : ''}">${b.name}</p>
                                 <p class="text-[10px] text-slate-400 truncate block"><i class="fa-regular fa-calendar mr-1"></i> ${b.dueDate} | ${formatIDR(b.amount)}</p>
                             </div>
                             <div class="shrink-0 ml-auto">
-                                ${!b.isPaid ? `<button onclick="payBill(${b.id})" class="text-xs bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-400 px-3 py-1.5 rounded-lg font-bold border border-cyan-500/30">Bayar</button>` : `<i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>`}
+                                ${!b.isPaid ? `<button onclick="payBill(${b.id})" class="text-[10px] bg-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-lg font-bold border border-cyan-500/30">Bayar</button>` : `<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>`}
                             </div>
                         </div>`;
                 });
             }
 
-            // Debts
             const dCont = document.getElementById('debt-list'); dCont.innerHTML = '';
-            if(appData.debts.length === 0) dCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card">Bersih dari hutang!</p>`;
+            if(appData.debts.length === 0) dCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card border-dashed">Bersih dari hutang!</p>`;
             else {
                 appData.debts.forEach(d => {
                     if (d.remaining <= 0) return; 
                     const isHutang = d.type === 'hutang'; 
                     dCont.innerHTML += `
                         <div class="glass-card p-3 flex items-center gap-3 w-full max-w-full overflow-hidden">
-                            <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${isHutang ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'} border border-white/5">
+                            <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-black/20 ${isHutang ? 'text-rose-400' : 'text-emerald-400'} border border-white/5">
                                 <i class="fa-solid ${isHutang ? 'fa-hand-holding-dollar' : 'fa-sack-dollar'}"></i>
                             </div>
                             <div class="flex-1 min-w-0">
@@ -580,16 +585,15 @@
                                 <p class="text-[10px] text-slate-400 truncate block">${isHutang ? 'Hutangku' : 'Duitku dipinjam'}</p>
                             </div>
                             <div class="text-right shrink-0 ml-auto">
-                                <p class="text-sm font-bold ${isHutang ? 'text-rose-400' : 'text-emerald-400'} whitespace-nowrap">${formatIDR(d.remaining)}</p>
-                                <button onclick="processDebt(${d.id})" class="text-[10px] underline text-cyan-400 mt-1">Selesaikan</button>
+                                <p class="text-[13px] font-bold ${isHutang ? 'text-rose-400' : 'text-emerald-400'} whitespace-nowrap">${formatIDR(d.remaining)}</p>
+                                <button onclick="processDebt(${d.id})" class="text-[10px] underline text-cyan-400 mt-0.5">Selesaikan</button>
                             </div>
                         </div>`;
                 });
             }
 
-            // Goals
             const gCont = document.getElementById('goal-list'); gCont.innerHTML = '';
-            if(appData.goals.length === 0) gCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card">Belum ada target.</p>`;
+            if(appData.goals.length === 0) gCont.innerHTML = `<p class="text-sm text-slate-400 text-center py-4 glass-card border-dashed">Belum ada target.</p>`;
             else {
                 appData.goals.forEach(g => {
                     const pct = Math.min((g.currentAmount / g.targetAmount) * 100, 100);
@@ -597,7 +601,7 @@
                         <div class="glass-card p-4 relative w-full overflow-hidden">
                             <div class="flex justify-between items-center mb-1 gap-2">
                                 <p class="text-sm font-bold text-white truncate flex-1 min-w-0 block"><i class="fa-solid fa-bullseye text-cyan-400 mr-1"></i> ${g.name}</p>
-                                <button onclick="addGoalFund(${g.id})" class="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded shrink-0 border border-emerald-400/20"><i class="fa-solid fa-plus"></i> Isi</button>
+                                <button onclick="addGoalFund(${g.id})" class="text-[10px] text-emerald-400 bg-emerald-400/10 px-2 py-1.5 rounded shrink-0 border border-emerald-400/20"><i class="fa-solid fa-plus mr-1"></i>Isi</button>
                             </div>
                             <p class="text-[10px] text-slate-400 mb-2 truncate block">${formatIDR(g.currentAmount)} / ${formatIDR(g.targetAmount)}</p>
                             <div class="w-full bg-black/40 rounded-full h-2 border border-white/5">
@@ -611,10 +615,7 @@
         window.payBill = function(id) {
             const b = appData.bills.find(x => x.id === id);
             if(b && confirm(`Bayar tagihan "${b.name}" sebesar ${formatIDR(b.amount)}?`)) {
-                appData.transactions.push({
-                    id: Date.now(), type: 'expense', amount: b.amount, category: 'Tagihan',
-                    date: toDateString(new Date()), description: `Bayar Tagihan: ${b.name}`, accountId: appData.accounts[0].id
-                });
+                appData.transactions.push({ id: Date.now(), type: 'expense', amount: b.amount, category: 'Tagihan', date: toDateString(new Date()), description: `Bayar Tagihan: ${b.name}`, accountId: appData.accounts[0].id });
                 b.isPaid = true; saveData();
             }
         };
@@ -626,11 +627,7 @@
                 if(!amountStr) return; const amt = parseFloat(amountStr.replace(/\D/g, ''));
                 if(amt > 0 && amt <= d.remaining) {
                     d.remaining -= amt;
-                    appData.transactions.push({
-                        id: Date.now(), type: d.type === 'hutang' ? 'expense' : 'income', amount: amt, 
-                        category: d.type === 'hutang' ? 'Bayar Hutang' : 'Lainnya',
-                        date: toDateString(new Date()), description: `Pelunasan: ${d.name}`, accountId: appData.accounts[0].id
-                    });
+                    appData.transactions.push({ id: Date.now(), type: d.type === 'hutang' ? 'expense' : 'income', amount: amt, category: d.type === 'hutang' ? 'Bayar Hutang' : 'Lainnya', date: toDateString(new Date()), description: `Pelunasan: ${d.name}`, accountId: appData.accounts[0].id });
                     saveData();
                 }
             }
@@ -644,24 +641,19 @@
                 if(amt > 0) {
                     g.currentAmount += amt;
                     if(confirm("Potong dari saldo dompet utama? (Tercatat sbg pengeluaran)")) {
-                        appData.transactions.push({
-                            id: Date.now(), type: 'expense', amount: amt, category: 'Nabung/Target',
-                            date: toDateString(new Date()), description: `Nabung: ${g.name}`, accountId: appData.accounts[0].id
-                        });
+                        appData.transactions.push({ id: Date.now(), type: 'expense', amount: amt, category: 'Nabung', date: toDateString(new Date()), description: `Nabung: ${g.name}`, accountId: appData.accounts[0].id });
                     }
                     saveData();
                 }
             }
         };
 
-        // ==========================================
-        // 5. MODAL DINAMIS
-        // ==========================================
         window.openDynamicModal = function(type) {
             dynModalContext = type; const titleEl = document.getElementById('dyn-modal-title'); const fieldsEl = document.getElementById('dyn-modal-fields');
             let html = '';
+            
             if (type === 'account') {
-                titleEl.innerText = "Tambah Rekening/Dompet";
+                titleEl.innerText = "Tambah Rekening Baru";
                 html = `<label class="block text-xs text-slate-400 ml-1">Nama (ex: BCA, OVO)</label><input type="text" id="dyn-name" required class="glass-input mb-3">
                         <label class="block text-xs text-slate-400 ml-1">Jenis</label><select id="dyn-type" class="glass-input mb-3 appearance-none"><option value="bank">Rekening Bank</option><option value="ewallet">E-Wallet</option><option value="cash">Uang Tunai</option></select>
                         <label class="block text-xs text-slate-400 ml-1">Saldo Awal (Rp)</label><input type="number" id="dyn-amount" required class="glass-input">`;
@@ -669,7 +661,7 @@
                 titleEl.innerText = "Buat Anggaran";
                 let catOpts = CATEGORIES.expense.map(c => `<option value="${c.id}">${c.id}</option>`).join('');
                 html = `<label class="block text-xs text-slate-400 ml-1">Kategori</label><select id="dyn-cat" class="glass-input mb-3 appearance-none">${catOpts}</select>
-                        <label class="block text-xs text-slate-400 ml-1">Batas Maksimal (Bulan Ini)</label><input type="number" id="dyn-amount" required class="glass-input">`;
+                        <label class="block text-xs text-slate-400 ml-1">Batas (Bulan Ini)</label><input type="number" id="dyn-amount" required class="glass-input">`;
             } else if (type === 'bill') {
                 titleEl.innerText = "Tagihan Rutin";
                 html = `<label class="block text-xs text-slate-400 ml-1">Nama Tagihan</label><input type="text" id="dyn-name" required class="glass-input mb-3">
@@ -709,9 +701,6 @@
             saveData(); closeDynamicModal();
         });
 
-        // ==========================================
-        // 6. TRANSAKSI (MODAL & OCR)
-        // ==========================================
         window.openTxModal = function() {
             document.getElementById('tx-date').valueAsDate = new Date(); setTxType('expense');
             document.getElementById('tx-account').innerHTML = appData.accounts.map(a => `<option value="${a.id}">${a.name} (${formatIDR(a.balance)})</option>`).join('');
@@ -768,14 +757,13 @@
             } catch (error) { alert("Sistem OCR error."); } finally { loader.classList.add('hidden'); loader.classList.remove('flex'); input.value = ''; }
         };
 
-
-        // ==========================================
-        // 7. TAB REKAP & KALENDER (VISUAL CALENDAR FEATURE)
-        // ==========================================
         window.changeRecapTab = function(mode) {
             activeRecapMode = mode;
+            selectedWeeklyDayIndex = null;
+            selectedCalendarDate = null;
+
             ['daily', 'weekly', 'monthly'].forEach(m => {
-                document.getElementById(`rtab-${m}`).className = `recap-tab-btn flex-1 py-1.5 text-xs font-bold rounded-lg text-center transition-all ${m === mode ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400'}`;
+                document.getElementById(`rtab-${m}`).className = `recap-tab-btn flex-1 py-1.5 text-[11px] font-bold rounded-lg text-center transition-all ${m === mode ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400'}`;
             });
             document.getElementById('recap-header-title').innerText = mode==='daily' ? 'Rekap Harian' : mode==='weekly' ? 'Rekap Mingguan' : 'Rekap Bulanan';
             renderRecap();
@@ -786,9 +774,8 @@
             else if (activeRecapMode === 'weekly') currentRecapDate.setDate(currentRecapDate.getDate() + (dir * 7));
             else if (activeRecapMode === 'monthly') currentRecapDate.setMonth(currentRecapDate.getMonth() + dir);
             
-            // Reset selected calendar date when month changes
-            if(activeRecapMode === 'monthly') selectedCalendarDate = null;
-            
+            selectedCalendarDate = null;
+            selectedWeeklyDayIndex = null;
             renderRecap();
         };
 
@@ -796,17 +783,17 @@
         const getEndOfWeek = (d) => { const date = new Date(d); const day = date.getDay() || 7; date.setDate(date.getDate() + (7 - day)); return date; }
 
         function renderRecap() {
-            let start, end, label;
+            let start, end, label, startWeekDate;
             
-            // Setup rentang tanggal berdasarkan mode
             if (activeRecapMode === 'daily') {
                 start = end = toDateString(currentRecapDate);
                 label = currentRecapDate.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
                 document.getElementById('recap-balance-label').innerText = "Arus Kas Hari Ini";
             } else if (activeRecapMode === 'weekly') {
-                const sW = getStartOfWeek(currentRecapDate), eW = getEndOfWeek(currentRecapDate);
-                start = toDateString(sW); end = toDateString(eW);
-                label = `${sW.toLocaleDateString('id-ID', { day:'numeric', month:'short' })} - ${eW.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })}`;
+                startWeekDate = getStartOfWeek(currentRecapDate); 
+                const eW = getEndOfWeek(currentRecapDate);
+                start = toDateString(startWeekDate); end = toDateString(eW);
+                label = `${startWeekDate.toLocaleDateString('id-ID', { day:'numeric', month:'short' })} - ${eW.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })}`;
                 document.getElementById('recap-balance-label').innerText = "Arus Kas Minggu Ini";
             } else {
                 const y = currentRecapDate.getFullYear(), m = currentRecapDate.getMonth();
@@ -817,15 +804,13 @@
             
             document.getElementById('recap-period-label').innerText = label;
             
-            // Ambil data untuk rentang yang sedang aktif
             currentRecapFilteredData = appData.transactions.filter(t => t.date >= start && t.date <= end);
-
-            // Kalkulasi Total untuk Panel Atas
-            let tInc = 0, tExp = 0; const cats = {}; const wData = [0,0,0,0,0,0,0];
+            let tInc = 0, tExp = 0; const wData = [0,0,0,0,0,0,0];
+            
             currentRecapFilteredData.forEach(t => {
                 if (t.type === 'income') tInc += t.amount;
                 if (t.type === 'expense') {
-                    tExp += t.amount; cats[t.category] = (cats[t.category] || 0) + t.amount;
+                    tExp += t.amount;
                     if (activeRecapMode === 'weekly') wData[(new Date(t.date).getDay() || 7) - 1] += t.amount;
                 }
             });
@@ -834,126 +819,100 @@
             document.getElementById('recap-income').innerText = formatIDR(tInc);
             document.getElementById('recap-expense').innerText = formatIDR(tExp);
             document.getElementById('recap-balance').innerText = formatIDR(net);
-            document.getElementById('recap-balance').className = `text-3xl font-bold ${net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('recap-balance').className = `text-3xl font-bold ${net >= 0 ? 'text-emerald-400' : 'text-rose-400'} truncate`;
 
-            // VISIBILITY MANAGEMENT (Tampilkan/Sembunyikan Elemen)
-            const elChart = document.getElementById('recap-weekly-chart-container');
-            const elCatList = document.getElementById('recap-category-container');
+            const elWeekly = document.getElementById('recap-weekly-wrapper');
             const elCalendar = document.getElementById('recap-calendar-container');
-            const elDailyTx = document.getElementById('recap-daily-tx-wrapper');
+            const elDataList = document.getElementById('recap-data-wrapper');
             
             if (activeRecapMode === 'daily') {
-                elChart.classList.add('hidden'); elCatList.classList.add('hidden'); elCalendar.classList.add('hidden');
-                elDailyTx.classList.remove('hidden');
+                elWeekly.classList.add('hidden'); elCalendar.classList.add('hidden'); elDataList.classList.remove('hidden');
                 document.getElementById('recap-list-title').innerText = "Histori Transaksi Harian";
                 renderTransactionList(currentRecapFilteredData.sort((a,b)=>b.id-a.id), 'recap-list-container', true);
             } 
             else if (activeRecapMode === 'weekly') {
-                elCalendar.classList.add('hidden'); elDailyTx.classList.add('hidden');
-                elChart.classList.remove('hidden'); elCatList.classList.remove('hidden');
+                elCalendar.classList.add('hidden'); elWeekly.classList.remove('hidden'); elDataList.classList.remove('hidden');
                 
-                // Render Chart
                 const ctx = document.getElementById('weeklyChart');
                 if (chartInstance) chartInstance.destroy();
-                chartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['Sn','Sl','Rb','Km','Jm','Sb','Mn'], datasets: [{ data: wData, backgroundColor: 'rgba(34, 211, 238, 0.8)', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: 'white' } } } } });
+                chartInstance = new Chart(ctx, { 
+                    type: 'bar', data: { labels: ['Sn','Sl','Rb','Km','Jm','Sb','Mn'], datasets: [{ data: wData, backgroundColor: 'rgba(34, 211, 238, 0.8)', borderRadius: 4 }] }, 
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } } 
+                });
 
-                // Render Rincian Kategori Mingguan
-                const lCont = document.getElementById('recap-category-list'); lCont.innerHTML = '';
-                if (tExp === 0) lCont.innerHTML = `<div class="text-center py-4 glass-card text-slate-400 text-sm">Tidak ada data.</div>`;
-                else {
-                    Object.keys(cats).sort((a,b)=>cats[b]-cats[a]).forEach(c => {
-                        const amt = cats[c]; const pct = Math.round((amt/tExp)*100); const i = getCatData('expense', c);
-                        lCont.innerHTML += `
-                            <div class="glass-card p-3 relative overflow-hidden flex items-center justify-between w-full max-w-full">
-                                <div class="absolute left-0 top-0 bottom-0 bg-white/10" style="width: ${pct}%"></div>
-                                <div class="relative z-10 flex items-center gap-3 flex-1 min-w-0 pr-2">
-                                    <div class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-black/20 ${i.color} border border-white/5"><i class="fa-solid ${i.icon}"></i></div>
-                                    <div class="flex-1 min-w-0"><p class="font-bold text-white text-sm truncate block">${c}</p><p class="text-[10px] text-slate-400 truncate block">${pct}% dari pengeluaran</p></div>
-                                </div>
-                                <div class="shrink-0 ml-auto text-right">
-                                    <p class="font-bold text-white text-sm relative z-10 whitespace-nowrap">${formatIDR(amt)}</p>
-                                </div>
-                            </div>`;
-                    });
+                const daysName = ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mn'];
+                let daysHtml = '';
+                daysName.forEach((dName, idx) => {
+                    const isSelected = selectedWeeklyDayIndex === idx;
+                    daysHtml += `<button onclick="toggleWeeklyDay(${idx})" class="py-1.5 rounded-lg text-[10px] font-bold transition-all ${isSelected ? 'bg-cyan-500 text-white shadow-[0_0_8px_cyan]' : 'glass-btn text-slate-300'}">${dName}</button>`;
+                });
+                document.getElementById('recap-weekly-days').innerHTML = daysHtml;
+
+                if (selectedWeeklyDayIndex === null) {
+                    document.getElementById('recap-list-title').innerText = "Histori Transaksi Mingguan";
+                    const weeklyTxs = currentRecapFilteredData.sort((a,b)=>b.id-a.id);
+                    renderTransactionList(weeklyTxs, 'recap-list-container', true);
+                } else {
+                    const targetDate = new Date(startWeekDate);
+                    targetDate.setDate(targetDate.getDate() + selectedWeeklyDayIndex);
+                    const targetStr = toDateString(targetDate);
+                    const dayData = currentRecapFilteredData.filter(t => t.date === targetStr).sort((a,b)=>b.id-a.id);
+                    
+                    document.getElementById('recap-list-title').innerText = `Transaksi ${targetDate.toLocaleDateString('id-ID', {weekday:'long', day:'numeric'})}`;
+                    renderTransactionList(dayData, 'recap-list-container', true);
                 }
             } 
             else if (activeRecapMode === 'monthly') {
-                elChart.classList.add('hidden'); elCatList.classList.add('hidden');
-                elCalendar.classList.remove('hidden'); elDailyTx.classList.remove('hidden');
+                elWeekly.classList.add('hidden'); elCalendar.classList.remove('hidden'); elDataList.classList.remove('hidden');
                 
-                // Tentukan tanggal default yang dipilih di kalender (Hari ini jika bulan sama, atau tgl 1)
                 if (!selectedCalendarDate || !selectedCalendarDate.startsWith(start.substring(0, 7))) {
                     const todayStr = toDateString(new Date());
                     if (todayStr >= start && todayStr <= end) selectedCalendarDate = todayStr;
-                    else selectedCalendarDate = start; // Tanggal 1 bulan tsb
+                    else selectedCalendarDate = start; 
                 }
-
-                // Render Kalender & List Transaksi Khusus Tanggal tsb
                 renderMonthlyCalendar();
             }
         }
 
-        // FUNGSI RENDER VISUAL KALENDER
+        window.toggleWeeklyDay = function(idx) {
+            if (selectedWeeklyDayIndex === idx) selectedWeeklyDayIndex = null; 
+            else selectedWeeklyDayIndex = idx;
+            renderRecap(); 
+        }
+
         function renderMonthlyCalendar() {
-            const year = currentRecapDate.getFullYear();
-            const month = currentRecapDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDayIndex = new Date(year, month, 1).getDay(); // 0(Min) - 6(Sab)
+            const year = currentRecapDate.getFullYear(); const month = currentRecapDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate(); const firstDayIndex = new Date(year, month, 1).getDay(); 
 
-            let html = `
-                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2 uppercase">
-                    <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
-                </div>
-                <div class="grid grid-cols-7 gap-1">`;
+            let html = `<div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2 uppercase"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div><div class="grid grid-cols-7 gap-1">`;
+            for(let i=0; i<firstDayIndex; i++) html += `<div></div>`;
 
-            // Ruang kosong untuk hari sebelum tgl 1
-            for(let i=0; i<firstDayIndex; i++) {
-                html += `<div></div>`;
-            }
-
-            // Render Hari 1 sampai Akhir Bulan
             for(let d=1; d<=daysInMonth; d++) {
                 const dateStr = toDateString(new Date(year, month, d));
-                const isSelected = selectedCalendarDate === dateStr;
-                const isToday = dateStr === toDateString(new Date());
-                
-                // Cari apakah ada transaksi di tanggal ini
+                const isSelected = selectedCalendarDate === dateStr; const isToday = dateStr === toDateString(new Date());
                 const dayTxs = currentRecapFilteredData.filter(t => t.date === dateStr);
+                
                 let dots = '';
                 if(dayTxs.length > 0) {
-                    const hasInc = dayTxs.some(t => t.type === 'income');
-                    const hasExp = dayTxs.some(t => t.type === 'expense');
-                    dots = `<div class="flex justify-center gap-[2px] mt-1">
-                                ${hasInc ? '<div class="w-1 h-1 rounded-full bg-emerald-400"></div>' : ''}
-                                ${hasExp ? '<div class="w-1 h-1 rounded-full bg-rose-400"></div>' : ''}
-                            </div>`;
+                    const hasInc = dayTxs.some(t => t.type === 'income'); const hasExp = dayTxs.some(t => t.type === 'expense');
+                    dots = `<div class="flex justify-center gap-[2px] mt-0.5">${hasInc ? '<div class="w-1 h-1 rounded-full bg-emerald-400"></div>' : ''}${hasExp ? '<div class="w-1 h-1 rounded-full bg-rose-400"></div>' : ''}</div>`;
                 }
 
-                // Style button kalender
-                let btnClass = "cal-btn flex flex-col items-center justify-center p-1.5 h-10 w-full rounded-lg text-sm border border-transparent ";
-                if (isSelected) btnClass += "bg-cyan-500/80 text-white shadow-[0_0_10px_rgba(6,182,212,0.5)] border-cyan-400 font-bold ";
+                let btnClass = "flex flex-col items-center justify-center p-1.5 h-10 w-full rounded-lg text-sm border border-transparent transition-all active:scale-90 ";
+                if (isSelected) btnClass += "bg-cyan-500 text-white shadow-[0_0_8px_cyan] font-bold ";
                 else if (isToday) btnClass += "text-cyan-400 font-bold border-cyan-500/50 bg-white/5 ";
                 else btnClass += "text-slate-300 hover:bg-white/10 ";
 
-                html += `<button onclick="selectCalendarDate('${dateStr}')" class="${btnClass}">
-                            <span>${d}</span>
-                            ${dots}
-                         </button>`;
+                html += `<button onclick="selectCalendarDate('${dateStr}')" class="${btnClass}"><span>${d}</span>${dots}</button>`;
             }
-            html += `</div>`;
-            document.getElementById('calendar-grid').innerHTML = html;
+            html += `</div>`; document.getElementById('calendar-grid').innerHTML = html;
 
-            // Render Transaksi Khusus pada Tanggal yang Dipilih
             document.getElementById('recap-list-title').innerText = `Transaksi tgl ${new Date(selectedCalendarDate).getDate()} ${new Date(selectedCalendarDate).toLocaleDateString('id-ID', {month:'short'})}`;
-            
             const selectedTxs = currentRecapFilteredData.filter(t => t.date === selectedCalendarDate).sort((a,b)=>b.id-a.id);
             renderTransactionList(selectedTxs, 'recap-list-container', true);
         }
 
-        window.selectCalendarDate = function(dateStr) {
-            selectedCalendarDate = dateStr;
-            renderMonthlyCalendar(); // Hanya re-render bagian kalender & list bawahnya (tanpa hitung ulang saldo atas)
-        }
+        window.selectCalendarDate = function(dateStr) { selectedCalendarDate = dateStr; renderMonthlyCalendar(); }
 
         window.downloadRekapCSV = function() {
             if (currentRecapFilteredData.length === 0) return alert("Tidak ada data.");
@@ -969,7 +928,6 @@
             a.download = `Rekap_UangKu_${document.getElementById('recap-period-label').innerText.replace(/\s/g, '_')}.csv`; a.click();
         };
 
-        // Navigation
         window.switchTab = function(pageId, navId) {
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -977,7 +935,6 @@
             if (pageId === 'page-recap') { currentRecapDate = new Date(); renderRecap(); }
         };
 
-        // Init App
         document.addEventListener('DOMContentLoaded', () => { 
             loadData(); 
             ['transaction-modal', 'dynamic-modal'].forEach(id => { document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.id === 'transaction-modal' ? closeTxModal() : closeDynamicModal(); }); });
@@ -985,5 +942,4 @@
     </script>
 </body>
 </html>
-
 
