@@ -722,10 +722,28 @@
         };
 
         document.getElementById('form-tx').addEventListener('submit', (e) => {
-            e.preventDefault(); const finalAmt = parseFloat(document.getElementById('tx-amount').value.replace(/\D/g, ''));
+            e.preventDefault();
+            const finalAmt = parseFloat(document.getElementById('tx-amount').value.replace(/\D/g, ''));
             if (!finalAmt) return alert("Nominal tidak valid!");
-            appData.transactions.push({ id: Date.now(), type: txModalType, amount: finalAmt, accountId: parseInt(document.getElementById('tx-account').value), category: document.getElementById('tx-category').value, date: document.getElementById('tx-date').value, description: document.getElementById('tx-desc').value });
-            saveData(); closeTxModal();
+        
+            const desc = document.getElementById('tx-desc').value;
+        
+            // 1. Simpan ke sistem aplikasi lokal kamu
+            appData.transactions.push({ 
+                id: Date.now(), 
+                type: txModalType, 
+                amount: finalAmt, 
+                accountId: parseInt(document.getElementById('tx-account').value), 
+                category: document.getElementById('tx-category').value, 
+                date: document.getElementById('tx-date').value, 
+                description: desc 
+            });
+            saveData();
+        
+            // 2. Kirim juga data ke Supabase
+            tambahCatatan(desc, finalAmt, txModalType);
+        
+            closeTxModal();
         });
 
         window.deleteTx = function(id) { if(confirm("Hapus transaksi?")) { appData.transactions = appData.transactions.filter(t => t.id !== id); saveData(); } };
@@ -942,44 +960,46 @@
 
         // Project URL & Publishable Key dari Supabase kamu
         const SUPABASE_URL = 'https://nsfcrxezyzhoawiqdnnb.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_qZ-Jrlfld1HMpeDDQITXig_Jj_5JC7x'; // Ganti dengan kunci sb_publishable_... dari Supabase
+        const SUPABASE_KEY = 'sb_publishable_qZ-Jrlfld1HMpeDDQITXig_Jj_5JC7x';
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // 1. Fungsi Tambah Catatan Uang Baru
+        // Inisialisasi client dengan nama variabel 'supabaseClient'
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. Fungsi Tambah Catatan Uang Baru ke Supabase
         async function tambahCatatan(keterangan, jumlah, tipe) {
-          const { data, error } = await supabase
+          const { data, error } = await supabaseClient
             .from('Uangku')
             .insert([
               { keterangan: keterangan, jumlah: jumlah, tipe: tipe }
             ]);
         
           if (error) {
-            console.error('Gagal menyimpan:', error.message);
-            alert('Gagal menyimpan data!');
+            console.error('Gagal menyimpan ke Supabase:', error.message);
           } else {
-            alert('Catatan berhasil disimpan!');
-            tampilkanCatatan(); // Refresh data di layar
+            console.log('Catatan berhasil tersimpan di Supabase!');
           }
         }
         
         // 2. Fungsi Ambil Semua Catatan dari Supabase
         async function tampilkanCatatan() {
-          const { data, error } = await supabase
+          const { data, error } = await supabaseClient
             .from('Uangku')
             .select('*')
             .order('created_at', { ascending: false });
         
           if (error) {
-            console.error('Gagal mengambil data:', error.message);
+            console.error('Gagal mengambil data dari Supabase:', error.message);
             return;
           }
         
-          console.log('Daftar Catatan Uang:', data);
-          // Di sini kamu bisa melakukan loop pada 'data' untuk menampilkan ke HTML
+          console.log('Daftar Catatan Uang dari Supabase:', data);
         }
         
         // Panggil fungsi saat halaman selesai dimuat
         tampilkanCatatan();
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
