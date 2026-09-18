@@ -428,10 +428,19 @@
         }
 
         function syncAccountBalances() {
-            appData.accounts.forEach(acc => acc.balance = 0);
+            // Reset saldo ke Saldo Awal (initialBalance) jika ada, atau 0
+            appData.accounts.forEach(acc => {
+                acc.balance = acc.initialBalance || 0;
+            });
+        
             appData.transactions.forEach(tx => {
                 const acc = appData.accounts.find(a => a.id == tx.accountId);
-                if (acc) { tx.type === 'income' ? acc.balance += tx.amount : acc.balance -= tx.amount; }
+                if (acc) { 
+                    // Abaikan transaksi "Saldo Awal" agar tidak terhitung ganda
+                    if (tx.description !== 'Saldo Awal') {
+                        tx.type === 'income' ? acc.balance += tx.amount : acc.balance -= tx.amount; 
+                    }
+                }
             });
         }
 
@@ -702,10 +711,17 @@
         });
 
         window.openTxModal = function() {
-            document.getElementById('tx-date').valueAsDate = new Date(); setTxType('expense');
+            // Menggunakan format YYYY-MM-DD standar agar kompatibel di semua browser/HP
+            document.getElementById('tx-date').value = toDateString(new Date()); 
+            setTxType('expense');
             document.getElementById('tx-account').innerHTML = appData.accounts.map(a => `<option value="${a.id}">${a.name} (${formatIDR(a.balance)})</option>`).join('');
-            const modal = document.getElementById('transaction-modal'); const content = document.getElementById('tx-modal-content');
-            modal.classList.remove('hidden'); modal.classList.add('flex'); void modal.offsetWidth; content.classList.remove('translate-y-full');
+            
+            const modal = document.getElementById('transaction-modal'); 
+            const content = document.getElementById('tx-modal-content');
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex'); 
+            void modal.offsetWidth; 
+            content.classList.remove('translate-y-full');
         };
 
         window.closeTxModal = function() {
@@ -724,23 +740,26 @@
         document.getElementById('form-tx').addEventListener('submit', (e) => {
             e.preventDefault();
             const finalAmt = parseFloat(document.getElementById('tx-amount').value.replace(/\D/g, ''));
-            if (!finalAmt) return alert("Nominal tidak valid!");
+            const category = document.getElementById('tx-category').value;
+            const desc = document.getElementById('tx-desc').value.trim();
         
-            const desc = document.getElementById('tx-desc').value;
+            if (!finalAmt || finalAmt <= 0) return alert("Nominal tidak valid!");
+            if (!category) return alert("Pilih kategori transaksi terlebih dahulu!");
+            if (!desc) return alert("Isi keterangan transaksi!");
         
-            // 1. Simpan ke sistem aplikasi lokal kamu
+            // 1. Simpan ke sistem aplikasi lokal
             appData.transactions.push({ 
                 id: Date.now(), 
                 type: txModalType, 
                 amount: finalAmt, 
                 accountId: parseInt(document.getElementById('tx-account').value), 
-                category: document.getElementById('tx-category').value, 
+                category: category, 
                 date: document.getElementById('tx-date').value, 
                 description: desc 
             });
             saveData();
         
-            // 2. Kirim juga data ke Supabase
+            // 2. Kirim data ke Supabase
             tambahCatatan(desc, finalAmt, txModalType);
         
             closeTxModal();
