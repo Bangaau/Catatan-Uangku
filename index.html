@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #0f172a; /* Slate 900 */
@@ -939,6 +939,47 @@
             loadData(); 
             ['transaction-modal', 'dynamic-modal'].forEach(id => { document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.id === 'transaction-modal' ? closeTxModal() : closeDynamicModal(); }); });
         });
+
+        // Project URL & Publishable Key dari Supabase kamu
+        const SUPABASE_URL = 'https://nsfcrxezyzhoawiqdnnb.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_qZ-Jrlfld1HMpeDDQITXig_Jj_5JC7x'; // Ganti dengan kunci sb_publishable_... dari Supabase
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 1. Fungsi Tambah Catatan Uang Baru
+        async function tambahCatatan(keterangan, jumlah, tipe) {
+          const { data, error } = await supabase
+            .from('Uangku')
+            .insert([
+              { keterangan: keterangan, jumlah: jumlah, tipe: tipe }
+            ]);
+        
+          if (error) {
+            console.error('Gagal menyimpan:', error.message);
+            alert('Gagal menyimpan data!');
+          } else {
+            alert('Catatan berhasil disimpan!');
+            tampilkanCatatan(); // Refresh data di layar
+          }
+        }
+        
+        // 2. Fungsi Ambil Semua Catatan dari Supabase
+        async function tampilkanCatatan() {
+          const { data, error } = await supabase
+            .from('Uangku')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+          if (error) {
+            console.error('Gagal mengambil data:', error.message);
+            return;
+          }
+        
+          console.log('Daftar Catatan Uang:', data);
+          // Di sini kamu bisa melakukan loop pada 'data' untuk menampilkan ke HTML
+        }
+        
+        // Panggil fungsi saat halaman selesai dimuat
+        tampilkanCatatan();
     </script>
 </body>
 </html>
