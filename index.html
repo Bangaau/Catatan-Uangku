@@ -105,9 +105,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         HALAMAN 1: BERANDA
-         ============================================== -->
+    <!-- HALAMAN 1: BERANDA -->
     <div id="page-home" class="page active page-content px-4 pt-4">
         <header class="flex items-center justify-between mb-6">
             <div>
@@ -154,9 +152,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         HALAMAN 2: PERENCANAAN
-         ============================================== -->
+    <!-- HALAMAN 2: PERENCANAAN -->
     <div id="page-plan" class="page page-content px-4">
         <header class="pt-4 sticky-header-fix mb-6">
             <h1 class="text-2xl font-bold text-white mb-4">Perencanaan</h1>
@@ -198,9 +194,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         HALAMAN 3: REKAP & GRAFIK
-         ============================================== -->
+    <!-- HALAMAN 3: REKAP & GRAFIK -->
     <div id="page-recap" class="page page-content px-4">
         <header class="pt-4 sticky-header-fix mb-4">
             <div class="flex justify-between items-center mb-4">
@@ -262,10 +256,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL UTAMA (TAMBAH TRANSAKSI)
-         Kategori Kiri, Tanggal Kanan (Kolom Tanggal Diperkecil Aman)
-         ============================================== -->
+    <!-- MODAL UTAMA (TAMBAH TRANSAKSI) -->
     <div id="transaction-modal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden flex-col justify-end backdrop-blur-sm transition-opacity">
         <div id="ocr-loading" class="hidden absolute inset-0 bg-slate-900/95 backdrop-blur-xl z-[70] flex-col justify-center items-center rounded-t-3xl">
             <i class="fa-solid fa-expand fa-spin text-5xl text-cyan-400 mb-4"></i>
@@ -298,7 +289,6 @@
                     <select id="tx-account" required class="glass-input text-sm appearance-none"></select>
                 </div>
                 
-                <!-- TATA LETAK KATEGORI (KIRI) & TANGGAL (KANAN) DENGAN UKURAN PAS -->
                 <div class="flex gap-2">
                     <div class="flex-[1.2] min-w-0">
                         <label class="block text-xs font-bold text-slate-400 mb-1 ml-1 truncate">Kategori</label>
@@ -320,9 +310,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL DINAMIS
-         ============================================== -->
+    <!-- MODAL DINAMIS -->
     <div id="dynamic-modal" class="fixed inset-0 bg-slate-900/80 z-[65] hidden flex-col justify-end backdrop-blur-sm transition-opacity">
         <div class="glass-panel w-full rounded-t-3xl p-6 pb-8 transform transition-transform translate-y-full relative modal-scroll-content" id="dynamic-modal-content">
             <div class="flex justify-between items-center mb-6">
@@ -336,9 +324,7 @@
         </div>
     </div>
 
-    <!-- ==============================================
-         NAVIGASI BAWAH
-         ============================================== -->
+    <!-- NAVIGASI BAWAH -->
     <nav class="fixed bottom-0 w-full glass-panel flex justify-between items-center h-[75px] px-6 pb-safe z-40">
         <button onclick="switchTab('page-home', 'nav-home')" id="nav-home" class="tab-btn active flex flex-col items-center justify-center w-12 text-slate-400">
             <i class="fa-solid fa-house text-xl mb-1 transition-transform duration-200"></i><span class="text-[10px] font-bold">Beranda</span>
@@ -427,19 +413,14 @@
             updateAllUI();
         }
 
+        // AKURAT: Reset ke 0 lalu akumulasi seluruh riwayat transaksi
         function syncAccountBalances() {
-            // Reset saldo ke Saldo Awal (initialBalance) jika ada, atau 0
-            appData.accounts.forEach(acc => {
-                acc.balance = acc.initialBalance || 0;
-            });
-        
+            appData.accounts.forEach(acc => acc.balance = 0);
+            
             appData.transactions.forEach(tx => {
-                const acc = appData.accounts.find(a => a.id == tx.accountId);
+                const acc = appData.accounts.find(a => Number(a.id) === Number(tx.accountId));
                 if (acc) { 
-                    // Abaikan transaksi "Saldo Awal" agar tidak terhitung ganda
-                    if (tx.description !== 'Saldo Awal') {
-                        tx.type === 'income' ? acc.balance += tx.amount : acc.balance -= tx.amount; 
-                    }
+                    tx.type === 'income' ? acc.balance += tx.amount : acc.balance -= tx.amount; 
                 }
             });
         }
@@ -508,7 +489,7 @@
             }
             data.forEach(t => {
                 const isInc = t.type === 'income'; const catInfo = getCatData(t.type, t.category);
-                const acc = appData.accounts.find(a => a.id == t.accountId)?.name || 'Unknown';
+                const acc = appData.accounts.find(a => Number(a.id) === Number(t.accountId))?.name || 'Unknown';
                 const dateFmt = new Date(t.date).toLocaleDateString('id-ID', { day:'numeric', month:'short' });
                 const delBtn = allowDelete ? `<button onclick="deleteTx(${t.id})" class="text-slate-500 hover:text-rose-400 p-2 ml-1 active:scale-90"><i class="fa-solid fa-trash"></i></button>` : '';
 
@@ -699,8 +680,11 @@
         document.getElementById('form-dynamic').addEventListener('submit', function(e) {
             e.preventDefault(); const id = Date.now(); const getVal = (i) => document.getElementById(i)?.value || ''; const getNum = (i) => parseFloat(document.getElementById(i)?.value) || 0;
             if (dynModalContext === 'account') {
-                appData.accounts.push({ id, name: getVal('dyn-name'), type: getVal('dyn-type'), balance: getNum('dyn-amount'), color: THEMES[appData.accounts.length % THEMES.length] });
-                if(getNum('dyn-amount') > 0) appData.transactions.push({ id: Date.now()+1, type: 'income', amount: getNum('dyn-amount'), category: 'Lainnya', date: toDateString(new Date()), description: 'Saldo Awal', accountId: id });
+                const initBalance = getNum('dyn-amount');
+                appData.accounts.push({ id, name: getVal('dyn-name'), type: getVal('dyn-type'), balance: 0, color: THEMES[appData.accounts.length % THEMES.length] });
+                if(initBalance > 0) {
+                    appData.transactions.push({ id: Date.now()+1, type: 'income', amount: initBalance, category: 'Lainnya', date: toDateString(new Date()), description: 'Saldo Awal', accountId: id });
+                }
             } else if (dynModalContext === 'budget') {
                 appData.budgets = appData.budgets.filter(b => !(b.category === getVal('dyn-cat') && b.monthStr === currentMonthStr));
                 appData.budgets.push({ id, category: getVal('dyn-cat'), limit: getNum('dyn-amount'), monthStr: currentMonthStr });
@@ -711,7 +695,6 @@
         });
 
         window.openTxModal = function() {
-            // Menggunakan format YYYY-MM-DD standar agar kompatibel di semua browser/HP
             document.getElementById('tx-date').value = toDateString(new Date()); 
             setTxType('expense');
             document.getElementById('tx-account').innerHTML = appData.accounts.map(a => `<option value="${a.id}">${a.name} (${formatIDR(a.balance)})</option>`).join('');
@@ -742,11 +725,11 @@
             const finalAmt = parseFloat(document.getElementById('tx-amount').value.replace(/\D/g, ''));
             const category = document.getElementById('tx-category').value;
             const desc = document.getElementById('tx-desc').value.trim();
-        
+
             if (!finalAmt || finalAmt <= 0) return alert("Nominal tidak valid!");
             if (!category) return alert("Pilih kategori transaksi terlebih dahulu!");
             if (!desc) return alert("Isi keterangan transaksi!");
-        
+
             // 1. Simpan ke sistem aplikasi lokal
             appData.transactions.push({ 
                 id: Date.now(), 
@@ -758,10 +741,10 @@
                 description: desc 
             });
             saveData();
-        
+
             // 2. Kirim data ke Supabase
             tambahCatatan(desc, finalAmt, txModalType);
-        
+
             closeTxModal();
         });
 
@@ -956,7 +939,7 @@
             let csv = "Tanggal,Dompet,Tipe,Kategori,Keterangan,Nominal(Rp)\n"; let tIn = 0, tOut = 0;
             const exp = [...currentRecapFilteredData].sort((a,b) => new Date(a.date) - new Date(b.date));
             exp.forEach(t => {
-                const acc = appData.accounts.find(a => a.id == t.accountId)?.name || 'Unknown';
+                const acc = appData.accounts.find(a => Number(a.id) === Number(t.accountId))?.name || 'Unknown';
                 csv += `${t.date},"${acc}",${t.type==='income'?'Masuk':'Keluar'},${t.category},"${t.description.replace(/"/g,'""')}",${t.amount}\n`;
                 t.type==='income' ? tIn+=t.amount : tOut+=t.amount;
             });
@@ -977,14 +960,10 @@
             ['transaction-modal', 'dynamic-modal'].forEach(id => { document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) this.id === 'transaction-modal' ? closeTxModal() : closeDynamicModal(); }); });
         });
 
-        // Project URL & Publishable Key dari Supabase kamu
         const SUPABASE_URL = 'https://nsfcrxezyzhoawiqdnnb.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_qZ-Jrlfld1HMpeDDQITXig_Jj_5JC7x';
-        
-        // Inisialisasi client dengan nama variabel 'supabaseClient'
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 1. Fungsi Tambah Catatan Uang Baru ke Supabase
         async function tambahCatatan(keterangan, jumlah, tipe) {
           const { data, error } = await supabaseClient
             .from('Uangku')
@@ -999,7 +978,6 @@
           }
         }
         
-        // 2. Fungsi Ambil Semua Catatan dari Supabase
         async function tampilkanCatatan() {
           const { data, error } = await supabaseClient
             .from('Uangku')
@@ -1014,10 +992,7 @@
           console.log('Daftar Catatan Uang dari Supabase:', data);
         }
         
-        // Panggil fungsi saat halaman selesai dimuat
         tampilkanCatatan();
     </script>
 </body>
 </html>
-
-
